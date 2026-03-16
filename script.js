@@ -1,7 +1,14 @@
 /* ═══════════════════════════════════════════════
    KONSTANTEN & STATE
 ═══════════════════════════════════════════════ */
+if (localStorage.getItem('lager_auth') !== 'true') {
+    window.location.href = 'login.html';
+}
 
+function logout() {
+    localStorage.removeItem('lager_auth');
+    window.location.href = 'login.html';
+}
 /** @type {string} localStorage-Schlüssel für die Fächer-Daten */
 const STORAGE_KEY = 'lager_slots';
 

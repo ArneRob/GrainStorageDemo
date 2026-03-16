@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./login.css">
+    <script src="./login.js" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="card" id="card">
+  <div class="logo">Lagerverwaltung</div>
+  <div class="sub"></div>
+
+  <div class="field">
+    <label>Benutzername</label>
+    <input type="text" id="inp-user" placeholder="Benutzername" autocomplete="username" />
+  </div>
+
+  <div class="field">
+    <label>Passwort</label>
+    <input type="password" id="inp-pass" placeholder="Passwort" autocomplete="current-password" />
+  </div>
+
+  <div class="err-msg" id="err-msg">Benutzername oder Passwort falsch.</div>
+
+  <button class="btn-login" onclick="doLogin()">Anmelden</button>
+
+  <div class="hint">Nur für autorisierte Nutzer</div>
+  <div class="WARNING" style="text-align: center; margin-top: 10px;">KEINE REGESTRIERUNG MÖGLICH PRIVATE NUTZUNG</div>
+</div>
+</body>
+</html>

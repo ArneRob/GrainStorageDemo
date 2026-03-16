@@ -1,7 +1,7 @@
 
 
 const USERS = [
-    { username: 'arne', password: 'LagerGranum' },
+    { username: 'arne', password: 'LagerSoftware' },
 ];
 
 const AUTH_KEY = 'lager_auth';

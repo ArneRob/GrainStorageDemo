@@ -1,0 +1,195 @@
+/* ── Overlay & Modal ── */
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.38);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.overlay.open { display: flex; }
+
+.modal {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    width: 340px;
+    max-width: 100%;
+}
+
+.modal h3 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.title-num-input {
+    width: 64px;
+    border: none;
+    border-bottom: 1px solid var(--border-md);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 500;
+    font-family: var(--font);
+    padding: 0 2px;
+    outline: none;
+}
+
+.title-num-input:focus { border-bottom-color: var(--c-voll-txt); }
+
+/* ── Felder ── */
+.field {
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.field label {
+    font-size: 16px;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    padding: 7px 10px;
+    font-size: 17px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font);
+}
+
+.field textarea { resize: vertical; min-height: 64px; }
+.field input[readonly] { color: var(--text3); cursor: default; }
+
+/* ── Partie-Bereich ── */
+.partie-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.partie-dropdown { flex: 1; }
+
+.pn-new-row {
+    display: none;
+    gap: 6px;
+    margin-top: 6px;
+    align-items: center;
+}
+
+.pn-new-row input {
+    flex: 1;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    padding: 7px 10px;
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font);
+}
+
+/* ── Modal-Aktionen ── */
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.modal .btn { font-size: 17px; }
+
+/* ── Temperaturliste ── */
+.temp-list {
+    max-height: 100px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.temp-empty { font-size: 16px; color: var(--text3); padding: 6px 2px; }
+
+.temp-entry {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.temp-entry:hover { border-color: var(--border-md); }
+.temp-locked { opacity: 0.8; }
+
+.temp-entry-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.temp-preview-range { font-size: 17px; font-weight: 500; color: var(--text); }
+.temp-preview-date  { font-size: 15px; color: var(--text3); }
+
+.temp-entry-details {
+    display: none;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+}
+
+.temp-entry.open .temp-entry-details { display: block; }
+
+.temp-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    color: var(--text2);
+    margin-bottom: 4px;
+}
+
+.temp-detail-lbl { color: var(--text3); }
+
+.temp-entry-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text3);
+    border-top: 0.5px solid var(--border);
+    padding-top: 5px;
+    margin-top: 6px;
+}
+
+/* ── Sichtkontrolle ── */
+.sicht-inline { font-size: 15px; font-weight: 500; padding: 1px 6px; border-radius: 10px; }
+.sicht-ok         { background: var(--c-leer-bg);     color: var(--c-leer-txt); }
+.sicht-schaedling { background: var(--c-gereinigt-bg);color: var(--c-gereinigt-txt); }
+.sicht-schimmel   { background: #450a0a;               color: #f87171; }
+
+/* ── Temperatur-Formular ── */
+.temp-add-btn {
+    width: 100%;
+    border-style: dashed;
+    color: var(--text2);
+    text-align: center;
+    font-size: 16px;
+}
+
+.temp-range-row { display: flex; gap: 10px; }
+.temp-range-row > div { flex: 1; }
+
+#temp-overlay { z-index: 210; }

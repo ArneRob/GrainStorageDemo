@@ -35,13 +35,20 @@
     --c-reserviert-bg: #26215C;
     --c-reserviert-txt: #CECBF6;
 }
-
+html {
+    background: var(--bg);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
 body {
     font-family: var(--font);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     padding: 1.5rem 1rem 4rem;
+    max-width: 1440px;
+    width: 100%;
 }
 
 /* ── Topbar ── */

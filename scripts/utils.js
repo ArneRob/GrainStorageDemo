@@ -27,8 +27,6 @@ const STATUS_LABELS = {
     reserviert: 'Reserviert',
 };
 
-const SICHT_LABELS = { ok: 'OK', schaedling: 'Schädlingsbefall', schimmel: 'Schimmel' };
-
 /* ═══════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════ */

@@ -73,6 +73,7 @@ function loadFromStorage() {
                 if (!s.parties) {
                     s.parties = s.name ? [{ value: s.name, addedAt: s.updated, addedAtMs: 0 }] : [];
                 }
+                if (s.fruchtart == null) s.fruchtart = '';
             });
             nextId = slots.reduce((max, s) => Math.max(max, s.id), 0) + 1;
         } else {
@@ -112,15 +113,15 @@ function saveToStorage() {
 function defaultSlots() {
     const t = nowTimestamp();
     return [
-        { id: 1, slotNumber: 5,  parties: [{ value: '66-1001', addedAt: t, addedAtMs: 0 }], status: 'leer',      temperatures: [], updated: t },
-        { id: 2, slotNumber: 6,  parties: [{ value: '66-1002', addedAt: t, addedAtMs: 0 }], status: 'voll',      temperatures: [], updated: t },
-        { id: 3, slotNumber: 7,  parties: [{ value: '66-1003', addedAt: t, addedAtMs: 0 }], status: 'gereinigt', temperatures: [], updated: t },
-        { id: 4, slotNumber: 8,  parties: [{ value: '66-1004', addedAt: t, addedAtMs: 0 }], status: 'gereinigt', temperatures: [], updated: t },
-        { id: 5, slotNumber: 9,  parties: [{ value: '66-1005', addedAt: t, addedAtMs: 0 }], status: 'reserviert',temperatures: [], updated: t },
-        { id: 6, slotNumber: 10, parties: [{ value: '66-1006', addedAt: t, addedAtMs: 0 }], status: 'leer',      temperatures: [], updated: t },
-        { id: 7, slotNumber: 11, parties: [{ value: '66-1007', addedAt: t, addedAtMs: 0 }], status: 'voll',      temperatures: [], updated: t },
-        { id: 8, slotNumber: 12, parties: [{ value: '66-1008', addedAt: t, addedAtMs: 0 }], status: 'leer',      temperatures: [], updated: t },
-        { id: 9, slotNumber: 13, parties: [{ value: '66-1009', addedAt: t, addedAtMs: 0 }], status: 'gereinigt', temperatures: [], updated: t },
+        { id: 1, slotNumber: 5,  fruchtart: 'Weizen',  parties: [{ value: '66-1001', addedAt: t, addedAtMs: 0 }], status: 'leer',       temperatures: [], updated: t },
+        { id: 2, slotNumber: 6,  fruchtart: 'Dinkel',  parties: [{ value: '66-1002', addedAt: t, addedAtMs: 0 }], status: 'voll',       temperatures: [], updated: t },
+        { id: 3, slotNumber: 7,  fruchtart: 'SBK',     parties: [{ value: '66-1003', addedAt: t, addedAtMs: 0 }], status: 'gereinigt',  temperatures: [], updated: t },
+        { id: 4, slotNumber: 8,  fruchtart: 'Weizen',  parties: [{ value: '66-1004', addedAt: t, addedAtMs: 0 }], status: 'gereinigt',  temperatures: [], updated: t },
+        { id: 5, slotNumber: 9,  fruchtart: 'Dinkel',  parties: [{ value: '66-1005', addedAt: t, addedAtMs: 0 }], status: 'reserviert', temperatures: [], updated: t },
+        { id: 6, slotNumber: 10, fruchtart: 'SBK',     parties: [{ value: '66-1006', addedAt: t, addedAtMs: 0 }], status: 'leer',       temperatures: [], updated: t },
+        { id: 7, slotNumber: 11, fruchtart: 'Weizen',  parties: [{ value: '66-1007', addedAt: t, addedAtMs: 0 }], status: 'voll',       temperatures: [], updated: t },
+        { id: 8, slotNumber: 12, fruchtart: '',        parties: [{ value: '66-1008', addedAt: t, addedAtMs: 0 }], status: 'leer',       temperatures: [], updated: t },
+        { id: 9, slotNumber: 13, fruchtart: 'Dinkel',  parties: [{ value: '66-1009', addedAt: t, addedAtMs: 0 }], status: 'gereinigt',  temperatures: [], updated: t },
     ];
 }
 
@@ -271,9 +272,9 @@ function cycleLayout() {
  */
 function openAdd() {
     editingId = null;
-    document.getElementById('modal-title').textContent = 'Neues Fach';
-    document.getElementById('f-num').value = '';
-    document.getElementById('f-num').readOnly = false;
+    document.getElementById('modal-title').innerHTML =
+        'Fach <input id="f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
+    document.getElementById('f-frucht').value = '';
     editingParties = [];
     renderPartieDropdownLabel();
     setDropdownValue('leer');
@@ -283,6 +284,7 @@ function openAdd() {
     document.getElementById('del-btn').style.display = 'none';
     document.getElementById('pn-new-row').style.display = 'none';
     document.getElementById('overlay').classList.add('open');
+    document.getElementById('f-num').focus();
 }
 
 /**
@@ -294,9 +296,8 @@ function openEdit(id) {
     const sl = slots.find(s => s.id === id);
     if (!sl) return;
     editingId = id;
-    document.getElementById('modal-title').textContent = `Fach ${sl.slotNumber} bearbeiten`;
-    document.getElementById('f-num').value = sl.slotNumber;
-    document.getElementById('f-num').readOnly = true;
+    document.getElementById('modal-title').textContent = `Fach ${sl.slotNumber}`;
+    document.getElementById('f-frucht').value = sl.fruchtart || '';
     editingParties = sl.parties ? sl.parties.map(p => ({ ...p })) : [];
     renderPartieDropdownLabel();
     setDropdownValue(sl.status);
@@ -331,7 +332,11 @@ function onOverlayClick(event) {
  * @returns {void}
  */
 function saveSlot() {
-    const slotNumber = parseInt(document.getElementById('f-num').value, 10) || nextId + 4;
+    const numInput = document.getElementById('f-num');
+    const slotNumber = editingId !== null
+        ? slots.find(s => s.id === editingId)?.slotNumber
+        : (parseInt(numInput?.value, 10) || nextId + 4);
+    const fruchtart = document.getElementById('f-frucht').value.trim();
     const status = document.getElementById('f-status').value;
     const updated = nowTimestamp();
 
@@ -342,9 +347,9 @@ function saveSlot() {
 
     if (editingId !== null) {
         const sl = slots.find(s => s.id === editingId);
-        if (sl) { sl.slotNumber = slotNumber; sl.parties = editingParties; sl.status = status; sl.temperatures = tempEntries; sl.updated = updated; }
+        if (sl) { sl.parties = editingParties; sl.fruchtart = fruchtart; sl.status = status; sl.temperatures = tempEntries; sl.updated = updated; }
     } else {
-        slots.push({ id: nextId++, slotNumber, parties: editingParties, status, temperatures: tempEntries, updated });
+        slots.push({ id: nextId++, slotNumber, fruchtart, parties: editingParties, status, temperatures: tempEntries, updated });
     }
 
     saveToStorage();
@@ -384,7 +389,7 @@ function deleteSlot() {
 document.addEventListener('keydown', (e) => {
     if (!document.getElementById('overlay').classList.contains('open')) return;
     if (e.key === 'Escape') closeModal();
-    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.id !== 'pn-new-input') {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.id !== 'pn-new-input' && e.target.id !== 'f-num') {
         e.preventDefault();
         saveSlot();
     }

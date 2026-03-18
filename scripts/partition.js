@@ -65,8 +65,8 @@ export function renderPartitionTabs() {
     }
     tabsEl.style.display = 'flex';
     tabsEl.innerHTML = returnPartitionTabsTemplate(state.editingPartitions, state.activePartitionIdx);
-    tabsEl.querySelectorAll('.partition-tab').forEach((btn, idx) => {
-        btn.addEventListener('click', () => switchPartition(idx));
+    tabsEl.querySelectorAll('.partition-tab').forEach((button, idx) => {
+        button.addEventListener('click', () => switchPartition(idx));
     });
 }
 
@@ -83,8 +83,8 @@ export function showPartitionPicker() {
     picker.innerHTML = returnPartitionPickerTemplate(state.editingPartitions);
     picker.style.display = 'flex';
     document.getElementById('modal-content').style.display = 'none';
-    picker.querySelectorAll('.picker-card').forEach((btn) => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        btn.addEventListener('click', () => selectPartitionFromPicker(idx));
+    picker.querySelectorAll('.picker-card').forEach((button) => {
+        const idx = parseInt(button.dataset.idx, 10);
+        button.addEventListener('click', () => selectPartitionFromPicker(idx));
     });
 }

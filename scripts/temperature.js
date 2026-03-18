@@ -21,11 +21,11 @@ export function renderTempList() {
         list.innerHTML = '<div class="temp-empty">Noch keine Einträge</div>';
         return;
     }
-    list.innerHTML = state.tempEntries.map((e) => {
-        const locked = isTempLocked(e);
+    list.innerHTML = state.tempEntries.map((entry) => {
+        const locked = isTempLocked(entry);
         let entryClass = 'temp-entry';
         if (locked) entryClass += ' temp-locked';
-        return returnTempEntryTemplate(e, entryClass);
+        return returnTempEntryTemplate(entry, entryClass);
     }).join('');
 }
 

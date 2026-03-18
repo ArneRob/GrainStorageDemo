@@ -21,14 +21,49 @@
     max-width: 100%;
 }
 
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
 .modal h3 {
     font-size: 20px;
     font-weight: 500;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
     display: flex;
     align-items: center;
     gap: 6px;
 }
+
+/* ── Partition-Tabs ── */
+.partition-tabs {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.partition-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    color: var(--text2);
+    font-size: 15px;
+    cursor: pointer;
+    font-family: var(--font);
+}
+
+.partition-tab.active {
+    background: var(--c-voll-bg);
+    border-color: var(--c-voll);
+    color: var(--c-voll-txt);
+}
+
 
 .title-num-input {
     width: 64px;

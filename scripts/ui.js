@@ -1,7 +1,7 @@
 import { showToast, nowTimestamp, logout } from './utils.js';
 import { state, COL_OPTIONS, STATUS_LABELS, loadFromStorage, saveToStorage } from './state.js';
 import { renderTempList, openTempForm, closeTempForm, saveTempEntry, toggleTempEntry } from './temperature.js';
-import { returnStatsTemplate, returnSlotCardTemplate, returnPartieItemTemplate } from './template.js';
+import { returnStatsTemplate, returnSlotCardTemplate, returnPartieItemTemplate, returnPartitionTabsTemplate } from './template.js';
 
 /* ═══════════════════════════════════════════════
    RENDERING
@@ -10,7 +10,6 @@ import { returnStatsTemplate, returnSlotCardTemplate, returnPartieItemTemplate }
 function renderStats() {
     const counts = { leer: 0, voll: 0, gereinigt: 0, reserviert: 0 };
     state.slots.forEach(s => counts[s.status]++);
-
     document.getElementById('stats').innerHTML = returnStatsTemplate(state.slots.length, counts);
 }
 
@@ -23,11 +22,18 @@ function renderGrid() {
     [...state.slots].sort((a, b) => a.slotNumber - b.slotNumber).forEach((sl) => {
         const card = document.createElement('div');
         card.className = `slot ${sl.status}`;
+
+        const firstPartition = sl.partitions && sl.partitions[0];
         let lastPartie = '—';
-        if (sl.parties && sl.parties.length > 0) {
-            lastPartie = sl.parties[sl.parties.length - 1].value;
+        let fruchtart  = '';
+        if (firstPartition) {
+            fruchtart = firstPartition.fruchtart || '';
+            if (firstPartition.parties && firstPartition.parties.length > 0) {
+                lastPartie = firstPartition.parties[firstPartition.parties.length - 1].value;
+            }
         }
-        card.innerHTML = returnSlotCardTemplate(sl, lastPartie, STATUS_LABELS[sl.status]);
+
+        card.innerHTML = returnSlotCardTemplate(sl, lastPartie, STATUS_LABELS[sl.status], fruchtart);
         card.addEventListener('click', () => openEdit(sl.id));
         grid.appendChild(card);
     });
@@ -51,22 +57,85 @@ function cycleLayout() {
 }
 
 /* ═══════════════════════════════════════════════
+   PARTITIONEN
+═══════════════════════════════════════════════ */
+
+function saveCurrentPartitionState() {
+    const p = state.editingPartitions[state.activePartitionIdx];
+    if (!p) return;
+    p.fruchtart    = document.getElementById('f-frucht').value.trim();
+    p.parties      = state.editingParties;
+    p.temperatures = state.tempEntries;
+}
+
+function loadPartitionContent(idx) {
+    const p = state.editingPartitions[idx];
+    if (!p) return;
+    document.getElementById('f-frucht').value = p.fruchtart || '';
+    state.editingParties = p.parties ? p.parties.map(x => ({ ...x })) : [];
+    state.tempEntries    = p.temperatures ? [...p.temperatures] : [];
+    renderPartieDropdownLabel();
+    renderTempList();
+    document.getElementById('pn-new-row').style.display = 'none';
+}
+
+function switchPartition(idx) {
+    saveCurrentPartitionState();
+    state.activePartitionIdx = idx;
+    loadPartitionContent(idx);
+    renderPartitionTabs();
+}
+
+function addPartition() {
+    saveCurrentPartitionState();
+    const label = String.fromCharCode(65 + state.editingPartitions.length);
+    state.editingPartitions.push({ label, fruchtart: '', parties: [], temperatures: [] });
+    state.activePartitionIdx = state.editingPartitions.length - 1;
+    loadPartitionContent(state.activePartitionIdx);
+    renderPartitionTabs();
+}
+
+function deletePartition(idx) {
+    if (state.editingPartitions.length <= 1) return;
+    state.editingPartitions.splice(idx, 1);
+    state.editingPartitions.forEach((p, i) => { p.label = String.fromCharCode(65 + i); });
+    let newIdx = idx;
+    if (newIdx >= state.editingPartitions.length) {
+        newIdx = state.editingPartitions.length - 1;
+    }
+    state.activePartitionIdx = newIdx;
+    loadPartitionContent(newIdx);
+    renderPartitionTabs();
+}
+
+function renderPartitionTabs() {
+    const tabsEl = document.getElementById('partition-tabs');
+    if (state.editingPartitions.length <= 1) {
+        tabsEl.style.display = 'none';
+        return;
+    }
+    tabsEl.style.display = 'flex';
+    tabsEl.innerHTML = returnPartitionTabsTemplate(state.editingPartitions, state.activePartitionIdx);
+    tabsEl.querySelectorAll('.partition-tab').forEach((btn, idx) => {
+        btn.addEventListener('click', () => switchPartition(idx));
+    });
+}
+
+/* ═══════════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════════ */
 
 function openAdd() {
     state.editingId = null;
+    state.editingPartitions  = [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }];
+    state.activePartitionIdx = 0;
     document.getElementById('modal-title').innerHTML =
         'Fach <input id="f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
-    document.getElementById('f-frucht').value = '';
-    state.editingParties = [];
-    renderPartieDropdownLabel();
+    loadPartitionContent(0);
+    renderPartitionTabs();
     setDropdownValue('leer');
-    state.tempEntries = [];
-    renderTempList();
     document.getElementById('f-date').value = nowTimestamp();
     document.getElementById('del-btn').style.display = 'none';
-    document.getElementById('pn-new-row').style.display = 'none';
     document.getElementById('overlay').classList.add('open');
     document.getElementById('f-num').focus();
 }
@@ -75,13 +144,17 @@ function openEdit(id) {
     const sl = state.slots.find(s => s.id === id);
     if (!sl) return;
     state.editingId = id;
+    state.editingPartitions = sl.partitions.map(p => ({
+        label:        p.label,
+        fruchtart:    p.fruchtart || '',
+        parties:      p.parties ? p.parties.map(x => ({ ...x })) : [],
+        temperatures: p.temperatures ? [...p.temperatures] : [],
+    }));
+    state.activePartitionIdx = 0;
     document.getElementById('modal-title').textContent = `Fach ${sl.slotNumber}`;
-    document.getElementById('f-frucht').value = sl.fruchtart || '';
-    state.editingParties = sl.parties ? sl.parties.map(p => ({ ...p })) : [];
-    renderPartieDropdownLabel();
+    loadPartitionContent(0);
+    renderPartitionTabs();
     setDropdownValue(sl.status);
-    state.tempEntries = sl.temperatures ? [...sl.temperatures] : [];
-    renderTempList();
     document.getElementById('f-date').value = sl.updated;
     document.getElementById('del-btn').style.display = 'inline-block';
     document.getElementById('pn-new-row').style.display = 'none';
@@ -93,6 +166,8 @@ function closeModal() {
 }
 
 function saveSlot() {
+    saveCurrentPartitionState();
+
     const numInput = document.getElementById('f-num');
     let slotNumber;
     if (state.editingId !== null) {
@@ -100,29 +175,30 @@ function saveSlot() {
     } else {
         slotNumber = parseInt(numInput?.value, 10) || state.nextId + 4;
     }
-    const fruchtart = document.getElementById('f-frucht').value.trim();
-    const status    = document.getElementById('f-status').value;
-    const updated   = nowTimestamp();
 
-    if (state.editingParties.length === 0) {
-        showToast('Bitte mindestens eine Partie-Nummer hinzufügen.');
-        return;
+    const status  = document.getElementById('f-status').value;
+    const updated = nowTimestamp();
+
+    for (let i = 0; i < state.editingPartitions.length; i++) {
+        if (state.editingPartitions[i].parties.length === 0) {
+            const label = state.editingPartitions[i].label;
+            showToast(`Partition ${label}: Bitte mindestens eine Partie-Nummer hinzufügen.`);
+            return;
+        }
     }
 
     if (state.editingId !== null) {
         const sl = state.slots.find(s => s.id === state.editingId);
         if (sl) {
-            sl.parties      = state.editingParties;
-            sl.fruchtart    = fruchtart;
-            sl.status       = status;
-            sl.temperatures = state.tempEntries;
-            sl.updated      = updated;
+            sl.partitions = state.editingPartitions;
+            sl.status     = status;
+            sl.updated    = updated;
         }
     } else {
         state.slots.push({
-            id: state.nextId++, slotNumber, fruchtart,
-            parties: state.editingParties, status,
-            temperatures: state.tempEntries, updated,
+            id: state.nextId++, slotNumber,
+            partitions: state.editingPartitions,
+            status, updated,
         });
     }
 
@@ -138,10 +214,18 @@ function saveSlot() {
 
 function deleteSlot() {
     if (state.editingId === null) return;
-    const sl       = state.slots.find(s => s.id === state.editingId);
-    let lastName = 'Fach';
-    if (sl && sl.parties && sl.parties.length > 0) {
-        lastName = sl.parties[sl.parties.length - 1].value;
+
+    if (state.editingPartitions.length > 1) {
+        const p = state.editingPartitions[state.activePartitionIdx];
+        if (!confirm(`Partition ${p.label} wirklich löschen?`)) return;
+        deletePartition(state.activePartitionIdx);
+        return;
+    }
+
+    const sl = state.slots.find(s => s.id === state.editingId);
+    let lastName = 'dieses Fach';
+    if (sl && sl.partitions && sl.partitions[0] && sl.partitions[0].parties && sl.partitions[0].parties.length > 0) {
+        lastName = sl.partitions[0].parties[sl.partitions[0].parties.length - 1].value;
     }
     if (!confirm(`"${lastName}" wirklich löschen?`)) return;
     state.slots = state.slots.filter(s => s.id !== state.editingId);
@@ -218,10 +302,10 @@ function confirmNewPartie() {
     if (!val) { showToast('Bitte Partie-Nummer eingeben.'); return; }
     const now = new Date();
     state.editingParties.push({
-        value:      val,
-        addedAt:    now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-        addedAtMs:  now.getTime(),
+        value:     val,
+        addedAt:   now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                 + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+        addedAtMs: now.getTime(),
     });
     document.getElementById('pn-new-row').style.display = 'none';
     document.getElementById('pn-new-input').value = '';
@@ -251,6 +335,9 @@ function init() {
     document.getElementById('del-btn').addEventListener('click', deleteSlot);
     document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
     document.getElementById('modal-save-btn').addEventListener('click', saveSlot);
+
+    // Partition
+    document.getElementById('add-partition-btn').addEventListener('click', addPartition);
 
     // Status-Dropdown
     document.getElementById('status-trigger').addEventListener('click', toggleDropdown);

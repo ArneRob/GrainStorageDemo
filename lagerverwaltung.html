@@ -43,7 +43,11 @@
   <!-- Modal -->
   <div class="overlay" id="overlay">
     <div class="modal">
-      <h3 id="modal-title">Fach bearbeiten</h3>
+      <div class="modal-header">
+        <h3 id="modal-title">Fach bearbeiten</h3>
+        <button class="btn" id="add-partition-btn" type="button">+ Teilung</button>
+      </div>
+      <div id="partition-tabs" class="partition-tabs" style="display:none"></div>
       <div class="field">
         <label>Fruchtart</label>
         <input id="f-frucht" type="text" placeholder="z.B. Weizen" />

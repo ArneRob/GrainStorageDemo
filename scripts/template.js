@@ -50,11 +50,11 @@ export function returnStatsTemplate(slotsLength, counts) {
       </div>`;
 }
 
-export function returnSlotCardTemplate(sl, lastPartie, statusLabel) {
-    let fruchtart = 'Leer';
-    if (sl.fruchtart) fruchtart = escHtml(sl.fruchtart);
+export function returnSlotCardTemplate(sl, lastPartie, statusLabel, fruchtart) {
+    let fruchtDisplay = 'Leer';
+    if (fruchtart) fruchtDisplay = escHtml(fruchtart);
     return `
-      <div class="slot-num">Fach ${sl.slotNumber} <span class="slot-fruchtart">${fruchtart}</span></div>
+      <div class="slot-num">Fach ${sl.slotNumber} <span class="slot-fruchtart">${fruchtDisplay}</span></div>
       <div class="slot-name">${escHtml(lastPartie)}</div>
       <div class="badge ${sl.status}">${statusLabel}</div>
       <div class="slot-info">${escHtml(sl.updated)}</div>`;
@@ -62,4 +62,12 @@ export function returnSlotCardTemplate(sl, lastPartie, statusLabel) {
 
 export function returnPartieItemTemplate(p) {
     return `<li class="pn-item">${escHtml(p.value)}<span class="pn-item-date">${escHtml(p.addedAt)}</span></li>`;
+}
+
+export function returnPartitionTabsTemplate(partitions, activeIdx) {
+    return partitions.map((p, i) => {
+        let cls = 'partition-tab';
+        if (i === activeIdx) cls += ' active';
+        return `<button class="${cls}" type="button">${escHtml(p.label)}</button>`;
+    }).join('');
 }

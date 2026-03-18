@@ -22,8 +22,10 @@ export function renderTempList() {
     }
     list.innerHTML = state.tempEntries.map((e) => {
         const locked = isTempLocked(e);
+        let entryClass = 'temp-entry';
+        if (locked) entryClass += ' temp-locked';
         return `
-          <div class="temp-entry${locked ? ' temp-locked' : ''}">
+          <div class="${entryClass}">
             <div class="temp-entry-preview">
               <span class="temp-preview-range">${e.von}°C – ${e.bis}°C</span>
               <span class="temp-preview-date">${escHtml(e.savedAtDisplay)}</span>

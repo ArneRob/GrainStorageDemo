@@ -41,9 +41,11 @@ export function loadFromStorage() {
                 if (!s.temperatures)  s.temperatures = [];
                 if (s.slotNumber == null) s.slotNumber = i + 5;
                 if (!s.parties) {
-                    s.parties = s.name
-                        ? [{ value: s.name, addedAt: s.updated, addedAtMs: 0 }]
-                        : [];
+                    if (s.name) {
+                        s.parties = [{ value: s.name, addedAt: s.updated, addedAtMs: 0 }];
+                    } else {
+                        s.parties = [];
+                    }
                 }
                 if (s.fruchtart == null) s.fruchtart = '';
             });

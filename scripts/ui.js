@@ -47,8 +47,10 @@ function renderGrid() {
     [...state.slots].sort((a, b) => a.slotNumber - b.slotNumber).forEach((sl) => {
         const card = document.createElement('div');
         card.className = `slot ${sl.status}`;
-        const lastPartie = sl.parties && sl.parties.length > 0
-            ? sl.parties[sl.parties.length - 1].value : '—';
+        let lastPartie = '—';
+        if (sl.parties && sl.parties.length > 0) {
+            lastPartie = sl.parties[sl.parties.length - 1].value;
+        }
         card.innerHTML = `
           <div class="slot-num">Fach ${sl.slotNumber}</div>
           <div class="slot-name">${escHtml(lastPartie)}</div>
@@ -120,10 +122,13 @@ function closeModal() {
 }
 
 function saveSlot() {
-    const numInput   = document.getElementById('f-num');
-    const slotNumber = state.editingId !== null
-        ? state.slots.find(s => s.id === state.editingId)?.slotNumber
-        : (parseInt(numInput?.value, 10) || state.nextId + 4);
+    const numInput = document.getElementById('f-num');
+    let slotNumber;
+    if (state.editingId !== null) {
+        slotNumber = state.slots.find(s => s.id === state.editingId)?.slotNumber;
+    } else {
+        slotNumber = parseInt(numInput?.value, 10) || state.nextId + 4;
+    }
     const fruchtart = document.getElementById('f-frucht').value.trim();
     const status    = document.getElementById('f-status').value;
     const updated   = nowTimestamp();
@@ -153,14 +158,20 @@ function saveSlot() {
     saveToStorage();
     closeModal();
     render();
-    showToast(state.editingId !== null ? '✓ Fach gespeichert' : '✓ Fach hinzugefügt');
+    if (state.editingId !== null) {
+        showToast('✓ Fach gespeichert');
+    } else {
+        showToast('✓ Fach hinzugefügt');
+    }
 }
 
 function deleteSlot() {
     if (state.editingId === null) return;
     const sl       = state.slots.find(s => s.id === state.editingId);
-    const lastName = sl && sl.parties && sl.parties.length > 0
-        ? sl.parties[sl.parties.length - 1].value : 'Fach';
+    let lastName = 'Fach';
+    if (sl && sl.parties && sl.parties.length > 0) {
+        lastName = sl.parties[sl.parties.length - 1].value;
+    }
     if (!confirm(`"${lastName}" wirklich löschen?`)) return;
     state.slots = state.slots.filter(s => s.id !== state.editingId);
     saveToStorage();
@@ -197,9 +208,10 @@ function setDropdownValue(value) {
 ═══════════════════════════════════════════════ */
 
 function renderPartieDropdownLabel() {
-    const last = state.editingParties.length > 0
-        ? state.editingParties[state.editingParties.length - 1].value
-        : 'Keine vorhanden';
+    let last = 'Keine vorhanden';
+    if (state.editingParties.length > 0) {
+        last = state.editingParties[state.editingParties.length - 1].value;
+    }
     document.getElementById('pn-label').textContent = last;
 }
 

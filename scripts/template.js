@@ -57,7 +57,7 @@ export function returnSlotCardTemplate(sl, lastPartie, statusLabel, fruchtart, p
     if (partitionCount > 1) multiIndicator = '<span class="slot-multi">+</span>';
     return `
       <div class="slot-num">
-        <p class="slot-fach">Fach ${sl.slotNumber}</p>
+        <p class="slot-fach">Lager ${sl.slotNumber}</p>
         <div class="slot-fruchtart">${fruchtDisplay}${multiIndicator}</div>
       </div>
       <div class="slot-name">${escHtml(lastPartie)}</div>

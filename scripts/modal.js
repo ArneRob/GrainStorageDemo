@@ -17,7 +17,7 @@ export function openAdd() {
     state.editingPartitions  = [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }];
     state.activePartitionIdx = 0;
     document.getElementById('modal-title').innerHTML =
-        'Fach <input id="f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
+        'Lager <input id="f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
     loadPartitionContent(0);
     renderPartitionTabs();
     setDropdownValue('leer');
@@ -41,7 +41,7 @@ export function openEdit(id) {
         temperatures: partition.temperatures ? [...partition.temperatures] : [],
     }));
     state.activePartitionIdx = 0;
-    document.getElementById('modal-title').textContent     = `Fach ${slot.slotNumber}`;
+    document.getElementById('modal-title').textContent     = `Lager ${slot.slotNumber}`;
     loadPartitionContent(0);
     renderPartitionTabs();
     setDropdownValue(slot.status);
@@ -99,9 +99,9 @@ export function saveSlot() {
     closeModal();
     render();
     if (state.editingId !== null) {
-        showToast('✓ Fach gespeichert');
+        showToast('✓ Lager gespeichert');
     } else {
-        showToast('✓ Fach hinzugefügt');
+        showToast('✓ Lager hinzugefügt');
     }
 }
 
@@ -112,12 +112,12 @@ export function clearSlot() {
 
     if (slot.partitions.length > 1) {
         const partition = slot.partitions[state.activePartitionIdx];
-        if (!confirm(`Partition ${partition.label} in Fach ${slot.slotNumber} wirklich leeren? Die Daten werden archiviert und die Teilung aufgehoben.`)) return;
+        if (!confirm(`Partition ${partition.label} in Lager ${slot.slotNumber} wirklich leeren? Die Daten werden archiviert und die Teilung aufgehoben.`)) return;
         archivePartitionData(slot, partition);
         deletePartition(state.activePartitionIdx);
         slot.partitions = state.editingPartitions;
     } else {
-        if (!confirm(`Fach ${slot.slotNumber} wirklich leeren? Die Daten werden archiviert.`)) return;
+        if (!confirm(`Lager ${slot.slotNumber} wirklich leeren? Die Daten werden archiviert.`)) return;
         archiveSlotData(slot);
         slot.partitions = [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }];
         slot.status     = 'leer';
@@ -127,16 +127,16 @@ export function clearSlot() {
     saveToStorage();
     closeModal();
     render();
-    showToast(`✓ Fach ${slot.slotNumber} geleert und archiviert`);
+    showToast(`✓ Lager ${slot.slotNumber} geleert und archiviert`);
 }
 
 export function deleteSlot() {
     if (state.editingId === null) return;
     const slot = state.slots.find(s => s.id === state.editingId);
-    if (!confirm(`Fach ${slot.slotNumber} wirklich löschen?`)) return;
+    if (!confirm(`Lager ${slot.slotNumber} wirklich löschen?`)) return;
     state.slots = state.slots.filter(s => s.id !== state.editingId);
     saveToStorage();
     closeModal();
     render();
-    showToast('🗑 Fach gelöscht');
+    showToast('🗑 Lager gelöscht');
 }

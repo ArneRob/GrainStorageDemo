@@ -94,7 +94,7 @@ function writeToArchive(fachKey, fruchtKey, partienValues, temperaturen) {
 
 export function archiveSlotData(slot) {
     try {
-        const fachKey = `Fach ${slot.slotNumber}`;
+        const fachKey = `Lager ${slot.slotNumber}`;
         slot.partitions.forEach(partition => {
             const fruchtKey = partition.fruchtart || 'Unbekannt';
             writeToArchive(fachKey, fruchtKey, partition.parties.map(x => x.value), partition.temperatures);
@@ -106,7 +106,7 @@ export function archiveSlotData(slot) {
 
 export function archivePartitionData(slot, partition) {
     try {
-        const fachKey   = `Fach ${slot.slotNumber}`;
+        const fachKey   = `Lager ${slot.slotNumber}`;
         const fruchtKey = partition.fruchtart || 'Unbekannt';
         writeToArchive(fachKey, fruchtKey, partition.parties.map(x => x.value), partition.temperatures);
     } catch (e) {

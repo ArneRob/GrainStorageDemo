@@ -39,7 +39,7 @@ function renderGrid() {
     const addBtn = document.createElement('button');
     addBtn.className = 'add-slot';
     addBtn.dataset.action = 'add-slot';
-    addBtn.innerHTML = '<div class="plus">+</div><div>Fach hinzufügen</div>';
+    addBtn.innerHTML = '<div class="plus">+</div><div>Lager hinzufügen</div>';
     grid.appendChild(addBtn);
 }
 

@@ -14,7 +14,7 @@ function init() {
     loadFromStorage();
     render();
     document.getElementById('sub').textContent =
-        `${state.slots.length} Fächer geladen · Klicke auf ein Fach zum Bearbeiten`;
+        `${state.slots.length} Fächer geladen · Klicke auf ein Lager zum Bearbeiten`;
 
     // Topbar
     document.getElementById('logout-btn').addEventListener('click', logout);

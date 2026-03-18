@@ -51,8 +51,10 @@ export function returnStatsTemplate(slotsLength, counts) {
 }
 
 export function returnSlotCardTemplate(sl, lastPartie, statusLabel) {
+    let fruchtart = 'Leer';
+    if (sl.fruchtart) fruchtart = escHtml(sl.fruchtart);
     return `
-      <div class="slot-num">Fach ${sl.slotNumber}</div>
+      <div class="slot-num">Fach ${sl.slotNumber} <span class="slot-fruchtart">${fruchtart}</span></div>
       <div class="slot-name">${escHtml(lastPartie)}</div>
       <div class="badge ${sl.status}">${statusLabel}</div>
       <div class="slot-info">${escHtml(sl.updated)}</div>`;

@@ -50,11 +50,16 @@ export function returnStatsTemplate(slotsLength, counts) {
       </div>`;
 }
 
-export function returnSlotCardTemplate(sl, lastPartie, statusLabel, fruchtart) {
+export function returnSlotCardTemplate(sl, lastPartie, statusLabel, fruchtart, partitionCount) {
     let fruchtDisplay = 'Leer';
     if (fruchtart) fruchtDisplay = escHtml(fruchtart);
+    let multiIndicator = '';
+    if (partitionCount > 1) multiIndicator = '<span class="slot-multi">+</span>';
     return `
-      <div class="slot-num">Fach ${sl.slotNumber} <span class="slot-fruchtart">${fruchtDisplay}</span></div>
+      <div class="slot-num">
+        <p class="slot-fach">Fach ${sl.slotNumber}</p>
+        <div class="slot-fruchtart">${fruchtDisplay}${multiIndicator}</div>
+      </div>
       <div class="slot-name">${escHtml(lastPartie)}</div>
       <div class="badge ${sl.status}">${statusLabel}</div>
       <div class="slot-info">${escHtml(sl.updated)}</div>`;

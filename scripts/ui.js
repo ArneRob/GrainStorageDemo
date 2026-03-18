@@ -33,7 +33,7 @@ function renderGrid() {
             }
         }
 
-        card.innerHTML = returnSlotCardTemplate(sl, lastPartie, STATUS_LABELS[sl.status], fruchtart);
+        card.innerHTML = returnSlotCardTemplate(sl, lastPartie, STATUS_LABELS[sl.status], fruchtart, sl.partitions.length);
         card.addEventListener('click', () => openEdit(sl.id));
         grid.appendChild(card);
     });

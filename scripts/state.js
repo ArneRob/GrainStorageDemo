@@ -4,10 +4,11 @@ import { showToast, nowTimestamp } from './utils.js';
    KONSTANTEN
 ═══════════════════════════════════════════════ */
 
-export const STORAGE_KEY  = 'lager_slots';
-export const COL_KEY      = 'lager_col_idx';
-export const ARCHIVE_KEY  = 'lager_archiv';
-export const COL_OPTIONS  = [2, 3];
+export const STORAGE_KEY        = 'lager_slots';
+export const COL_KEY            = 'lager_col_idx';
+export const ARCHIVE_KEY        = 'lager_archiv';
+export const SCHLAUCH_KEY       = 'lager_schlauch_slots';
+export const COL_OPTIONS        = [2, 3];
 
 export const STATUS_LABELS = {
     leer:       'Ungereinigt',
@@ -21,14 +22,21 @@ export const STATUS_LABELS = {
 ═══════════════════════════════════════════════ */
 
 export const state = {
-    slots:              [],
-    nextId:             1,
-    editingId:          null,
-    editingPartitions:  [],
-    activePartitionIdx: 0,
-    tempEntries:        [],
-    editingParties:     [],
-    colIdx:             0,
+    slots:                  [],
+    nextId:                 1,
+    editingId:              null,
+    editingPartitions:      [],
+    activePartitionIdx:     0,
+    tempEntries:            [],
+    editingParties:         [],
+    colIdx:                 0,
+
+    activeView:             'lager',
+    schlauchSlots:          [],
+    schlauchNextId:         1,
+    editingSchlauchId:      null,
+    schlauchEditingParties: [],
+    schlauchNotizEntries:   [],
 };
 
 /* ═══════════════════════════════════════════════
@@ -120,6 +128,42 @@ export function saveToStorage() {
         localStorage.setItem(COL_KEY, String(state.colIdx));
     } catch (e) {
         console.warn('localStorage schreiben fehlgeschlagen:', e);
+        showToast('⚠ Speichern fehlgeschlagen – localStorage voll?');
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   SCHLAUCH STORAGE
+═══════════════════════════════════════════════ */
+
+/**
+ * Lädt Schlauch-Daten aus dem localStorage in den State.
+ */
+export function loadSchlauchFromStorage() {
+    try {
+        const raw = localStorage.getItem(SCHLAUCH_KEY);
+        if (raw) {
+            state.schlauchSlots    = JSON.parse(raw);
+            state.schlauchNextId   = state.schlauchSlots.reduce((max, s) => Math.max(max, s.id), 0) + 1;
+        } else {
+            state.schlauchSlots  = [];
+            state.schlauchNextId = 1;
+        }
+    } catch (e) {
+        console.warn('Schlauch localStorage lesen fehlgeschlagen:', e);
+        state.schlauchSlots  = [];
+        state.schlauchNextId = 1;
+    }
+}
+
+/**
+ * Speichert Schlauch-Daten aus dem State in den localStorage.
+ */
+export function saveSchlauchToStorage() {
+    try {
+        localStorage.setItem(SCHLAUCH_KEY, JSON.stringify(state.schlauchSlots));
+    } catch (e) {
+        console.warn('Schlauch localStorage schreiben fehlgeschlagen:', e);
         showToast('⚠ Speichern fehlgeschlagen – localStorage voll?');
     }
 }

@@ -1,6 +1,94 @@
 import { escHtml } from './utils.js';
 
 /* ═══════════════════════════════════════════════
+   SCHLAUCH TEMPLATES
+═══════════════════════════════════════════════ */
+
+/**
+ * Gibt das Stats-Template für die Schläuche-Ansicht zurück.
+ * Zeigt nur "Gelegt" mit der echten Anzahl, die restlichen 5 Felder zeigen "---".
+ * @param {number} count - Anzahl der Schläuche.
+ * @returns {string} HTML-String.
+ */
+export function returnSchlauchStatsTemplate(count) {
+    return `
+      <div class="stat">
+        <div class="stat-val">${count}</div>
+        <div class="stat-lbl">Gelegt</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:var(--text3)">---</div>
+        <div class="stat-lbl">---</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:var(--text3)">---</div>
+        <div class="stat-lbl">---</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:var(--text3)">---</div>
+        <div class="stat-lbl">---</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:var(--text3)">---</div>
+        <div class="stat-lbl">---</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:var(--text3)">---</div>
+        <div class="stat-lbl">---</div>
+      </div>`;
+}
+
+/**
+ * Gibt das Karten-Template für einen Schlauch zurück.
+ * Kein Status-Badge – stattdessen Standort (Wiese/Acker).
+ * @param {object} schlauch   - Der Schlauch-Datensatz.
+ * @param {string} lastPartie - Die zuletzt hinzugefügte Partie-Nummer.
+ * @returns {string} HTML-String.
+ */
+export function returnSchlauchCardTemplate(schlauch, lastPartie) {
+    let fruchtDisplay = 'Leer';
+    if (schlauch.fruchtart) {
+        fruchtDisplay = escHtml(schlauch.fruchtart);
+    }
+    let standortLabel = '—';
+    if (schlauch.standort === 'wiese') {
+        standortLabel = 'Wiese';
+    } else if (schlauch.standort === 'acker') {
+        standortLabel = 'Acker';
+    }
+    return `
+      <div class="slot-num">
+        <p class="slot-fach">Schlauch ${schlauch.slotNumber}</p>
+        <div class="slot-fruchtart">${fruchtDisplay}</div>
+      </div>
+      <div class="slot-name">${escHtml(lastPartie)}</div>
+      <div class="badge schlauch-standort">${standortLabel}</div>
+      <div class="slot-info">${escHtml(schlauch.updated)}</div>`;
+}
+
+/**
+ * Gibt das Template für einen einzelnen Schlauch-Notiz-Eintrag zurück.
+ * @param {object} notiz      - Der Notiz-Datensatz.
+ * @param {string} entryClass - CSS-Klassen des Eintrags.
+ * @returns {string} HTML-String.
+ */
+export function returnSchlauchNotizEntryTemplate(notiz, entryClass) {
+    return `
+      <div class="${entryClass}">
+        <div class="temp-entry-preview">
+          <span class="temp-preview-range notiz-preview-text">${escHtml(notiz.text)}</span>
+          <span class="temp-preview-date">${escHtml(notiz.savedAtDisplay)}</span>
+        </div>
+        <div class="temp-entry-details">
+          <div class="temp-entry-meta">
+            <span>${escHtml(notiz.savedAtDisplay)}</span>
+            <span>${escHtml(notiz.savedBy)}</span>
+          </div>
+        </div>
+      </div>`;
+}
+
+/* ═══════════════════════════════════════════════
    TEMPLATES
 ═══════════════════════════════════════════════ */
 

@@ -345,6 +345,56 @@ body {
     opacity: 1;
 }
 
+/* ── View Tabs ── */
+.view-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+.view-tab {
+    font-size: 14px;
+    padding: 6px 18px;
+}
+
+.view-tab.active {
+    background: var(--c-voll-bg);
+    color: var(--c-voll-txt);
+    border-color: var(--c-voll-txt);
+}
+
+/* ── Schlauch-Karten ── */
+.schlauch-card {
+    background: var(--surface);
+    border: 3px solid var(--c-voll);
+    border-radius: var(--radius-lg);
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    min-height: 105px;
+    position: relative;
+}
+
+.schlauch-card:hover {
+    border-color: var(--c-voll-txt);
+    transform: translateY(-1px);
+}
+
+.badge.schlauch-standort {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 0.5px solid var(--border-md);
+}
+
+/* ── Notiz-Vorschautext ── */
+.notiz-preview-text {
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
     .grid {

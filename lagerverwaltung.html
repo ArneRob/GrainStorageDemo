@@ -23,6 +23,11 @@
 
   <div class="stats" id="stats"></div>
 
+  <div class="view-tabs">
+    <button class="btn view-tab active" id="tab-lager">Lager</button>
+    <button class="btn view-tab" id="tab-schlauch">Schläuche</button>
+  </div>
+
   <div class="legend">
     <div class="leg">
       <div class="dot" style="background:var(--c-leer)"></div>Leer
@@ -135,6 +140,83 @@
       <div class="modal-actions">
         <button class="btn" type="button" id="temp-cancel-btn">Abbrechen</button>
         <button class="btn primary" type="button" id="temp-save-btn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schlauch Modal -->
+  <div class="overlay" id="schlauch-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="sc-modal-title">Schlauch bearbeiten</h3>
+      </div>
+      <div class="field">
+        <label>Fruchtart</label>
+        <input id="sc-f-frucht" type="text" placeholder="z.B. Weizen" />
+      </div>
+      <div class="field">
+        <label>Partie-Nummer</label>
+        <div class="partie-row">
+          <div class="custom-select partie-dropdown" id="sc-partie-dropdown">
+            <button class="cs-trigger" id="sc-partie-trigger" type="button">
+              <span class="cs-label" id="sc-pn-label">Keine vorhanden</span>
+              <span class="cs-arrow">▾</span>
+            </button>
+            <ul class="cs-list" id="sc-pn-list"></ul>
+          </div>
+          <button class="btn" type="button" id="sc-partie-add-btn">+ Hinzufügen</button>
+        </div>
+        <div class="pn-new-row" id="sc-pn-new-row">
+          <input id="sc-pn-new-input" type="text" placeholder="z.B. 66-1678" />
+          <button class="btn primary" type="button" id="sc-pn-ok-btn">OK</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Standort</label>
+        <div class="custom-select" id="sc-standort-dropdown">
+          <button class="cs-trigger" id="sc-standort-trigger" type="button">
+            <span class="cs-label" id="sc-standort-label">Wiese</span>
+            <span class="cs-arrow">▾</span>
+          </button>
+          <ul class="cs-list" id="sc-standort-list">
+            <li class="cs-item sc-standort-item" data-value="wiese">Wiese</li>
+            <li class="cs-item sc-standort-item" data-value="acker">Acker</li>
+          </ul>
+        </div>
+        <input type="hidden" id="sc-f-standort" value="wiese" />
+      </div>
+      <div class="field">
+        <label>Notizen</label>
+        <div class="temp-list" id="sc-notiz-list"></div>
+        <button class="btn temp-add-btn" type="button" id="sc-notiz-add-btn">+ Notiz hinzufügen</button>
+      </div>
+      <div class="field">
+        <label>Zuletzt geändert</label>
+        <input id="sc-f-date" type="text" readonly />
+      </div>
+      <div class="modal-actions">
+        <div class="modal-actions-left">
+          <button class="btn danger" id="sc-del-btn" style="display:none">Löschen</button>
+        </div>
+        <div class="modal-actions-right">
+          <button class="btn" id="sc-modal-cancel-btn">Abbrechen</button>
+          <button class="btn primary" id="sc-modal-save-btn">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schlauch Notiz-Overlay -->
+  <div class="overlay" id="schlauch-notiz-overlay">
+    <div class="modal">
+      <h3>Notiz</h3>
+      <div class="field" style="margin-top:1rem">
+        <label>Notiztext</label>
+        <textarea id="sn-text" placeholder="z.B. Schlauch beschädigt..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="sn-cancel-btn">Abbrechen</button>
+        <button class="btn primary" type="button" id="sn-save-btn">Speichern</button>
       </div>
     </div>
   </div>

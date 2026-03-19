@@ -353,3 +353,7 @@
 #temp-overlay {
     z-index: 210;
 }
+
+#schlauch-notiz-overlay {
+    z-index: 210;
+}

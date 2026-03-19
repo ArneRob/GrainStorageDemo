@@ -54,22 +54,50 @@ export function closeModal() {
  * Opens the modal to add a new warehouse slot.
  */
 export function openAdd() {
+    initAddState();
+    renderAddTitle();
+    initAddPartitions();
+    showAddModal();
+    document.getElementById('f-num').focus();
+}
+
+/**
+ * Resets the editing state for a new slot.
+ */
+function initAddState() {
     state.editingId          = null;
     state.editingPartitions  = [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }];
     state.activePartitionIdx = 0;
+}
+
+/**
+ * Sets the modal title to include the slot number input field.
+ */
+function renderAddTitle() {
     document.getElementById('modal-title').innerHTML =
         'Lager <input id="f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
+}
+
+/**
+ * Loads partition content and initialises the status dropdown for a new slot.
+ */
+function initAddPartitions() {
     loadPartitionContent(0);
     renderPartitionTabs();
     setDropdownValue('leer');
     updateStatusDropdownForContent();
+}
+
+/**
+ * Sets button visibility and opens the overlay for the add modal.
+ */
+function showAddModal() {
     document.getElementById('f-date').value                   = nowTimestamp();
     document.getElementById('del-btn').style.display          = 'none';
     document.getElementById('clear-btn').style.display        = 'none';
     document.getElementById('partition-picker').style.display = 'none';
     document.getElementById('modal-content').style.display    = 'block';
     document.getElementById('overlay').classList.add('open');
-    document.getElementById('f-num').focus();
 }
 
 /**

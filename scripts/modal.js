@@ -1,8 +1,41 @@
 import { showToast, nowTimestamp } from './utils.js';
 import { state, saveToStorage, archiveSlotData, archivePartitionData } from './state.js';
 import { saveCurrentPartitionState, loadPartitionContent, renderPartitionTabs, showPartitionPicker, deletePartition } from './partition.js';
-import { setDropdownValue } from './dropdown.js';
+import { setDropdownValue, setStatusDropdownDisabled, setVollOptionHidden } from './dropdown.js';
 import { render } from './render.js';
+
+/* ═══════════════════════════════════════════════
+   STATUS-LOGIK
+═══════════════════════════════════════════════ */
+
+/**
+ * Prüft ob mindestens eine Partition Inhalt hat (Fruchtart oder Partie-Nummer).
+ * @returns {boolean} true wenn mindestens eine Partition befüllt ist.
+ */
+function hasSlotContent() {
+    return state.editingPartitions.some(partition =>
+        partition.fruchtart.trim().length > 0 || partition.parties.length > 0
+    );
+}
+
+/**
+ * Aktualisiert den Status-Dropdown basierend auf dem Inhalt der Partitionen.
+ * Bei befülltem Fach: Dropdown gesperrt, Status auf "Voll" gesetzt.
+ * Bei leerem Fach: Dropdown bedienbar, nur leer/gereinigt/reserviert auswählbar.
+ */
+function updateStatusDropdownForContent() {
+    const slotHasContent = hasSlotContent();
+    setStatusDropdownDisabled(slotHasContent);
+    setVollOptionHidden(!slotHasContent);
+    if (slotHasContent) {
+        setDropdownValue('voll');
+        return;
+    }
+    const currentStatus = document.getElementById('f-status').value;
+    if (currentStatus === 'voll') {
+        setDropdownValue('leer');
+    }
+}
 
 /* ═══════════════════════════════════════════════
    MODAL
@@ -23,6 +56,7 @@ export function openAdd() {
     loadPartitionContent(0);
     renderPartitionTabs();
     setDropdownValue('leer');
+    updateStatusDropdownForContent();
     document.getElementById('f-date').value                   = nowTimestamp();
     document.getElementById('del-btn').style.display          = 'none';
     document.getElementById('clear-btn').style.display        = 'none';
@@ -58,6 +92,7 @@ function showModalForSlot(slot) {
     document.getElementById('pn-new-row').style.display    = 'none';
     document.getElementById('overlay').classList.add('open');
     setDropdownValue(slot.status);
+    updateStatusDropdownForContent();
     if (state.editingPartitions.length > 1) {
         showPartitionPicker();
     } else {
@@ -141,8 +176,13 @@ export function saveSlot() {
     if (!validatePartitions()) return;
 
     const slotNumber = resolveSlotNumber();
-    const status     = document.getElementById('f-status').value;
     const updated    = nowTimestamp();
+    let status;
+    if (hasSlotContent()) {
+        status = 'voll';
+    } else {
+        status = document.getElementById('f-status').value;
+    }
 
     applySlotChanges(slotNumber, status, updated);
     saveToStorage();

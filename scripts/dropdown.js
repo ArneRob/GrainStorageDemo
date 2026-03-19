@@ -25,6 +25,28 @@ export function setDropdownValue(value) {
     if (listItem) selectStatus(listItem);
 }
 
+/**
+ * Aktiviert oder deaktiviert den Status-Dropdown-Button.
+ * @param {boolean} disabled - true = gesperrt, false = bedienbar.
+ */
+export function setStatusDropdownDisabled(disabled) {
+    const trigger = document.getElementById('status-trigger');
+    if (!trigger) return;
+    trigger.disabled      = disabled;
+    trigger.style.opacity = disabled ? '0.5' : '';
+    trigger.style.cursor  = disabled ? 'not-allowed' : '';
+}
+
+/**
+ * Blendet die "Voll"-Option im Status-Dropdown aus oder ein.
+ * @param {boolean} hidden - true = ausgeblendet, false = sichtbar.
+ */
+export function setVollOptionHidden(hidden) {
+    const vollItem = document.querySelector('.cs-item[data-value="voll"]');
+    if (!vollItem) return;
+    vollItem.style.display = hidden ? 'none' : '';
+}
+
 /* ═══════════════════════════════════════════════
    PARTIE-DROPDOWN
 ═══════════════════════════════════════════════ */

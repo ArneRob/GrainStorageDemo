@@ -1,16 +1,16 @@
 import { escHtml } from './utils.js';
 
 /* ═══════════════════════════════════════════════
-   SCHLAUCH TEMPLATES
+   HOSE TEMPLATES
 ═══════════════════════════════════════════════ */
 
 /**
- * Gibt das Stats-Template für die Schläuche-Ansicht zurück.
- * Zeigt nur "Gelegt" mit der echten Anzahl, die restlichen 5 Felder zeigen "---".
- * @param {number} count - Anzahl der Schläuche.
- * @returns {string} HTML-String.
+ * Returns the stats template for the hose view.
+ * Shows only "Gelegt" with the real count; the remaining 5 fields show "---".
+ * @param {number} count - Number of active hoses.
+ * @returns {string} HTML string.
  */
-export function returnSchlauchStatsTemplate(count) {
+export function returnHoseStatsTemplate(count) {
     return `
       <div class="stat">
         <div class="stat-val">${count}</div>
@@ -39,50 +39,50 @@ export function returnSchlauchStatsTemplate(count) {
 }
 
 /**
- * Gibt das Karten-Template für einen Schlauch zurück.
- * Kein Status-Badge – stattdessen Standort (Wiese/Acker).
- * @param {object} schlauch   - Der Schlauch-Datensatz.
- * @param {string} lastPartie - Die zuletzt hinzugefügte Partie-Nummer.
- * @returns {string} HTML-String.
+ * Returns the card template for a single hose entry.
+ * No status badge – shows location (Wiese/Acker) instead.
+ * @param {object} hose      - The hose data object.
+ * @param {string} lastParty - The most recently added party number.
+ * @returns {string} HTML string.
  */
-export function returnSchlauchCardTemplate(schlauch, lastPartie) {
+export function returnHoseCardTemplate(hose, lastParty) {
     let fruchtDisplay = 'Leer';
-    if (schlauch.fruchtart) {
-        fruchtDisplay = escHtml(schlauch.fruchtart);
+    if (hose.fruchtart) {
+        fruchtDisplay = escHtml(hose.fruchtart);
     }
-    let standortLabel = '—';
-    if (schlauch.standort === 'wiese') {
-        standortLabel = 'Wiese';
-    } else if (schlauch.standort === 'acker') {
-        standortLabel = 'Acker';
+    let locationLabel = '—';
+    if (hose.standort === 'wiese') {
+        locationLabel = 'Wiese';
+    } else if (hose.standort === 'acker') {
+        locationLabel = 'Acker';
     }
     return `
       <div class="slot-num">
-        <p class="slot-fach">Schlauch ${schlauch.slotNumber}</p>
+        <p class="slot-fach">Schlauch ${hose.slotNumber}</p>
         <div class="slot-fruchtart">${fruchtDisplay}</div>
       </div>
-      <div class="slot-name">${escHtml(lastPartie)}</div>
-      <div class="badge schlauch-standort">${standortLabel}</div>
-      <div class="slot-info">${escHtml(schlauch.updated)}</div>`;
+      <div class="slot-name">${escHtml(lastParty)}</div>
+      <div class="badge schlauch-standort">${locationLabel}</div>
+      <div class="slot-info">${escHtml(hose.updated)}</div>`;
 }
 
 /**
- * Gibt das Template für einen einzelnen Schlauch-Notiz-Eintrag zurück.
- * @param {object} notiz      - Der Notiz-Datensatz.
- * @param {string} entryClass - CSS-Klassen des Eintrags.
- * @returns {string} HTML-String.
+ * Returns the template for a single hose note entry.
+ * @param {object} note       - The note data object.
+ * @param {string} entryClass - CSS classes for the entry element.
+ * @returns {string} HTML string.
  */
-export function returnSchlauchNotizEntryTemplate(notiz, entryClass) {
+export function returnHoseNoteEntryTemplate(note, entryClass) {
     return `
       <div class="${entryClass}">
         <div class="temp-entry-preview">
-          <span class="temp-preview-range notiz-preview-text">${escHtml(notiz.text)}</span>
-          <span class="temp-preview-date">${escHtml(notiz.savedAtDisplay)}</span>
+          <span class="temp-preview-range notiz-preview-text">${escHtml(note.text)}</span>
+          <span class="temp-preview-date">${escHtml(note.savedAtDisplay)}</span>
         </div>
         <div class="temp-entry-details">
           <div class="temp-entry-meta">
-            <span>${escHtml(notiz.savedAtDisplay)}</span>
-            <span>${escHtml(notiz.savedBy)}</span>
+            <span>${escHtml(note.savedAtDisplay)}</span>
+            <span>${escHtml(note.savedBy)}</span>
           </div>
         </div>
       </div>`;
@@ -92,24 +92,36 @@ export function returnSchlauchNotizEntryTemplate(notiz, entryClass) {
    TEMPLATES
 ═══════════════════════════════════════════════ */
 
-export function returnTempEntryTemplate(e, entryClass) {
+/**
+ * Returns the temperature entry template for a single entry.
+ * @param {object} entry      - The temperature entry data object.
+ * @param {string} entryClass - CSS classes for the entry element.
+ * @returns {string} HTML string.
+ */
+export function returnTempEntryTemplate(entry, entryClass) {
     return `
       <div class="${entryClass}">
         <div class="temp-entry-preview">
-          <span class="temp-preview-range">${e.von}°C – ${e.bis}°C</span>
-          <span class="temp-preview-date">${escHtml(e.savedAtDisplay)}</span>
+          <span class="temp-preview-range">${entry.von}°C – ${entry.bis}°C</span>
+          <span class="temp-preview-date">${escHtml(entry.savedAtDisplay)}</span>
         </div>
         <div class="temp-entry-details">
-          <div class="temp-detail-row"><span class="temp-detail-lbl">Sichtkontrolle</span><span>${escHtml(e.sicht)}</span></div>
-          <div class="temp-detail-row"><span class="temp-detail-lbl">Maßnahmen</span><span>${escHtml(e.massnahmen)}</span></div>
+          <div class="temp-detail-row"><span class="temp-detail-lbl">Sichtkontrolle</span><span>${escHtml(entry.sicht)}</span></div>
+          <div class="temp-detail-row"><span class="temp-detail-lbl">Maßnahmen</span><span>${escHtml(entry.massnahmen)}</span></div>
           <div class="temp-entry-meta">
-            <span>${escHtml(e.savedAtDisplay)}</span>
-            <span>${escHtml(e.savedBy)}</span>
+            <span>${escHtml(entry.savedAtDisplay)}</span>
+            <span>${escHtml(entry.savedBy)}</span>
           </div>
         </div>
       </div>`;
 }
 
+/**
+ * Returns the stats template for the warehouse view.
+ * @param {number} slotsLength - Total number of slots.
+ * @param {object} counts      - Count per status { leer, voll, gereinigt, reserviert }.
+ * @returns {string} HTML string.
+ */
 export function returnStatsTemplate(slotsLength, counts) {
     return `
       <div class="stat">
@@ -138,47 +150,72 @@ export function returnStatsTemplate(slotsLength, counts) {
       </div>`;
 }
 
-export function returnSlotCardTemplate(sl, lastPartie, statusLabel, fruchtart, partitionCount) {
+/**
+ * Returns the card template for a single warehouse slot.
+ * @param {object} slot           - The slot data object.
+ * @param {string} lastParty      - The most recently added party number.
+ * @param {string} statusLabel    - Human-readable status label.
+ * @param {string} fruchtart      - Grain type.
+ * @param {number} partitionCount - Number of partitions in this slot.
+ * @returns {string} HTML string.
+ */
+export function returnSlotCardTemplate(slot, lastParty, statusLabel, fruchtart, partitionCount) {
     let fruchtDisplay = 'Leer';
     if (fruchtart) fruchtDisplay = escHtml(fruchtart);
     let multiIndicator = '';
     if (partitionCount > 1) multiIndicator = '<span class="slot-multi">+</span>';
     return `
       <div class="slot-num">
-        <p class="slot-fach">Lager ${sl.slotNumber}</p>
+        <p class="slot-fach">Lager ${slot.slotNumber}</p>
         <div class="slot-fruchtart">${fruchtDisplay}${multiIndicator}</div>
       </div>
-      <div class="slot-name">${escHtml(lastPartie)}</div>
-      <div class="badge ${sl.status}">${statusLabel}</div>
-      <div class="slot-info">${escHtml(sl.updated)}</div>`;
+      <div class="slot-name">${escHtml(lastParty)}</div>
+      <div class="badge ${slot.status}">${statusLabel}</div>
+      <div class="slot-info">${escHtml(slot.updated)}</div>`;
 }
 
-export function returnPartieItemTemplate(p) {
-    return `<li class="pn-item">${escHtml(p.value)}<span class="pn-item-date">${escHtml(p.addedAt)}</span></li>`;
+/**
+ * Returns the list item template for a single party number entry.
+ * @param {object} party - The party number entry { value, addedAt }.
+ * @returns {string} HTML string.
+ */
+export function returnPartieItemTemplate(party) {
+    return `<li class="pn-item">${escHtml(party.value)}<span class="pn-item-date">${escHtml(party.addedAt)}</span></li>`;
 }
 
+/**
+ * Returns the partition picker overlay template.
+ * @param {Array} partitions - Array of partition objects.
+ * @returns {string} HTML string.
+ */
 export function returnPartitionPickerTemplate(partitions) {
-    const items = partitions.map((p, i) => {
+    const items = partitions.map((partition, index) => {
         let fruchtDisplay = 'Keine Fruchtart';
-        if (p.fruchtart) fruchtDisplay = escHtml(p.fruchtart);
-        let lastPartie = '—';
-        if (p.parties && p.parties.length > 0) {
-            lastPartie = escHtml(p.parties[p.parties.length - 1].value);
+        if (partition.fruchtart) fruchtDisplay = escHtml(partition.fruchtart);
+        let lastParty = '—';
+        if (partition.parties && partition.parties.length > 0) {
+            lastParty = escHtml(partition.parties[partition.parties.length - 1].value);
         }
         return `
-          <button class="picker-card" data-idx="${i}">
-            <div class="picker-label">${escHtml(p.label)}</div>
+          <button class="picker-card" data-idx="${index}">
+            <div class="picker-label">${escHtml(partition.label)}</div>
             <div class="picker-frucht">${fruchtDisplay}</div>
-            <div class="picker-partie">${lastPartie}</div>
+            <div class="picker-partie">${lastParty}</div>
           </button>`;
     }).join('');
     return `<div class="picker-title">Welche Teilung möchtest du bearbeiten?</div><div class="picker-cards">${items}</div>`;
 }
 
+/**
+ * Returns the partition tabs template.
+ * @param {Array}  partitions - Array of partition objects.
+ * @param {number} activeIdx  - Index of the currently active partition.
+ * @returns {string} HTML string.
+ */
 export function returnPartitionTabsTemplate(partitions, activeIdx) {
-    return partitions.map((p, i) => {
+    return partitions.map((partition, index) => {
         let cls = 'partition-tab';
-        if (i === activeIdx) cls += ' active';
-        return `<button class="${cls}" type="button">${escHtml(p.label)}</button>`;
+        if (index === activeIdx) cls += ' active';
+        return `<button class="${cls}" type="button">${escHtml(partition.label)}</button>`;
     }).join('');
 }

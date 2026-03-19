@@ -1,133 +1,133 @@
 import { showToast, nowTimestamp } from './utils.js';
-import { state, saveSchlauchToStorage } from './state.js';
+import { state, saveHoseToStorage } from './state.js';
 import { render } from './render.js';
-import { renderSchlauchNotizList } from './schlauch-notiz.js';
+import { renderHoseNoteList } from './schlauch-notiz.js';
 import { returnPartieItemTemplate } from './template.js';
 
 /* ═══════════════════════════════════════════════
-   MODAL – ÖFFNEN / SCHLIEßEN
+   MODAL – OPEN / CLOSE
 ═══════════════════════════════════════════════ */
 
 /**
- * Schließt das Schlauch-Modal.
+ * Closes the hose modal.
  */
-export function closeSchlauchModal() {
+export function closeHoseModal() {
     document.getElementById('schlauch-overlay').classList.remove('open');
 }
 
 /**
- * Befüllt alle Modal-Felder anhand eines vorhandenen Schlauch-Datensatzes
- * oder setzt sie auf Leer-Zustand für ein neues Objekt.
- * @param {object|null} schlauch - Vorhandener Datensatz oder null für neu.
+ * Populates all modal fields from an existing hose data object,
+ * or resets them to an empty state for a new entry.
+ * @param {object|null} hose - Existing hose data or null for a new entry.
  */
-function loadSchlauchModalContent(schlauch) {
-    if (schlauch) {
-        document.getElementById('sc-modal-title').textContent = `Schlauch ${schlauch.slotNumber}`;
-        document.getElementById('sc-f-frucht').value          = schlauch.fruchtart || '';
-        if (schlauch.parties) {
-            state.schlauchEditingParties = schlauch.parties.map(partie => ({ ...partie }));
+function loadHoseModalContent(hose) {
+    if (hose) {
+        document.getElementById('sc-modal-title').textContent = `Schlauch ${hose.slotNumber}`;
+        document.getElementById('sc-f-frucht').value          = hose.fruchtart || '';
+        if (hose.parties) {
+            state.hoseEditingParties = hose.parties.map(party => ({ ...party }));
         } else {
-            state.schlauchEditingParties = [];
+            state.hoseEditingParties = [];
         }
-        if (schlauch.notizen) {
-            state.schlauchNotizEntries = [...schlauch.notizen];
+        if (hose.notizen) {
+            state.hoseNoteEntries = [...hose.notizen];
         } else {
-            state.schlauchNotizEntries = [];
+            state.hoseNoteEntries = [];
         }
-        setSchlauchStandortValue(schlauch.standort || 'wiese');
-        document.getElementById('sc-f-date').value            = schlauch.updated;
-        document.getElementById('sc-del-btn').style.display   = 'inline-block';
+        setHoseLocationValue(hose.standort || 'wiese');
+        document.getElementById('sc-f-date').value          = hose.updated;
+        document.getElementById('sc-del-btn').style.display = 'inline-block';
     } else {
         document.getElementById('sc-modal-title').innerHTML =
             'Schlauch <input id="sc-f-num" class="title-num-input" type="number" min="1" placeholder="Nr." />';
         document.getElementById('sc-f-frucht').value         = '';
-        state.schlauchEditingParties                         = [];
-        state.schlauchNotizEntries                           = [];
-        setSchlauchStandortValue('wiese');
+        state.hoseEditingParties                             = [];
+        state.hoseNoteEntries                                = [];
+        setHoseLocationValue('wiese');
         document.getElementById('sc-f-date').value           = nowTimestamp();
         document.getElementById('sc-del-btn').style.display  = 'none';
     }
-    renderSchlauchPartieDropdownLabel();
-    renderSchlauchNotizList();
+    renderHosePartyDropdownLabel();
+    renderHoseNoteList();
     document.getElementById('sc-pn-new-row').style.display = 'none';
 }
 
 /**
- * Öffnet das Modal zum Anlegen eines neuen Schlauchs.
+ * Opens the modal to add a new hose entry.
  */
-export function openSchlauchAdd() {
-    state.editingSchlauchId = null;
-    loadSchlauchModalContent(null);
+export function openHoseAdd() {
+    state.editingHoseId = null;
+    loadHoseModalContent(null);
     document.getElementById('schlauch-overlay').classList.add('open');
     document.getElementById('sc-f-num')?.focus();
 }
 
 /**
- * Öffnet das Modal zum Bearbeiten eines vorhandenen Schlauchs.
- * @param {number} id - Die ID des Schlauchs.
+ * Opens the modal to edit an existing hose entry.
+ * @param {number} id - The ID of the hose to edit.
  */
-export function openSchlauchEdit(id) {
-    const schlauch = state.schlauchSlots.find(schlauchEintrag => schlauchEintrag.id === id);
-    if (!schlauch) return;
-    state.editingSchlauchId = id;
-    loadSchlauchModalContent(schlauch);
+export function openHoseEdit(id) {
+    const hose = state.hoseSlots.find(hoseEntry => hoseEntry.id === id);
+    if (!hose) return;
+    state.editingHoseId = id;
+    loadHoseModalContent(hose);
     document.getElementById('schlauch-overlay').classList.add('open');
 }
 
 /* ═══════════════════════════════════════════════
-   SPEICHERN / LÖSCHEN
+   SAVE / DELETE
 ═══════════════════════════════════════════════ */
 
 /**
- * Ermittelt die Schlauch-Nummer – beim Bearbeiten aus dem Datensatz,
- * beim Anlegen aus dem Eingabefeld.
- * @returns {number} Die Schlauch-Nummer.
+ * Resolves the hose number – from the existing data when editing,
+ * or from the input field when creating a new entry.
+ * @returns {number} The hose slot number.
  */
-function resolveSchlauchNumber() {
-    if (state.editingSchlauchId !== null) {
-        return state.schlauchSlots.find(schlauchEintrag => schlauchEintrag.id === state.editingSchlauchId)?.slotNumber;
+function resolveHoseNumber() {
+    if (state.editingHoseId !== null) {
+        return state.hoseSlots.find(hoseEntry => hoseEntry.id === state.editingHoseId)?.slotNumber;
     }
-    return parseInt(document.getElementById('sc-f-num')?.value, 10) || state.schlauchNextId;
+    return parseInt(document.getElementById('sc-f-num')?.value, 10) || state.hoseNextId;
 }
 
 /**
- * Speichert den aktuellen Schlauch (neu oder bearbeitet).
+ * Saves the current hose entry (new or edited) to the state and storage.
  */
-export function saveSchlauch() {
-    if (state.schlauchEditingParties.length === 0) {
+export function saveHose() {
+    if (state.hoseEditingParties.length === 0) {
         showToast('Bitte mindestens eine Partie-Nummer hinzufügen.');
         return;
     }
 
-    const slotNumber = resolveSchlauchNumber();
+    const slotNumber = resolveHoseNumber();
     const fruchtart  = document.getElementById('sc-f-frucht').value.trim();
     const standort   = document.getElementById('sc-f-standort').value;
     const updated    = nowTimestamp();
-    const isNew      = state.editingSchlauchId === null;
+    const isNew      = state.editingHoseId === null;
 
     if (isNew) {
-        state.schlauchSlots.push({
-            id:        state.schlauchNextId++,
+        state.hoseSlots.push({
+            id:        state.hoseNextId++,
             slotNumber,
             fruchtart,
-            parties:   state.schlauchEditingParties,
+            parties:   state.hoseEditingParties,
             standort,
-            notizen:   state.schlauchNotizEntries,
+            notizen:   state.hoseNoteEntries,
             updated,
         });
     } else {
-        const schlauch = state.schlauchSlots.find(schlauchEintrag => schlauchEintrag.id === state.editingSchlauchId);
-        if (schlauch) {
-            schlauch.fruchtart = fruchtart;
-            schlauch.parties   = state.schlauchEditingParties;
-            schlauch.standort  = standort;
-            schlauch.notizen   = state.schlauchNotizEntries;
-            schlauch.updated   = updated;
+        const hose = state.hoseSlots.find(hoseEntry => hoseEntry.id === state.editingHoseId);
+        if (hose) {
+            hose.fruchtart = fruchtart;
+            hose.parties   = state.hoseEditingParties;
+            hose.standort  = standort;
+            hose.notizen   = state.hoseNoteEntries;
+            hose.updated   = updated;
         }
     }
 
-    saveSchlauchToStorage();
-    closeSchlauchModal();
+    saveHoseToStorage();
+    closeHoseModal();
     render();
 
     if (isNew) {
@@ -138,66 +138,66 @@ export function saveSchlauch() {
 }
 
 /**
- * Löscht den aktuellen Schlauch nach Bestätigung.
+ * Deletes the current hose entry after confirmation.
  */
-export function deleteSchlauch() {
-    if (state.editingSchlauchId === null) return;
-    const schlauch = state.schlauchSlots.find(schlauchEintrag => schlauchEintrag.id === state.editingSchlauchId);
-    if (!confirm(`Schlauch ${schlauch.slotNumber} wirklich löschen?`)) return;
-    state.schlauchSlots = state.schlauchSlots.filter(schlauchEintrag => schlauchEintrag.id !== state.editingSchlauchId);
-    saveSchlauchToStorage();
-    closeSchlauchModal();
+export function deleteHose() {
+    if (state.editingHoseId === null) return;
+    const hose = state.hoseSlots.find(hoseEntry => hoseEntry.id === state.editingHoseId);
+    if (!confirm(`Schlauch ${hose.slotNumber} wirklich löschen?`)) return;
+    state.hoseSlots = state.hoseSlots.filter(hoseEntry => hoseEntry.id !== state.editingHoseId);
+    saveHoseToStorage();
+    closeHoseModal();
     render();
     showToast('Schlauch gelöscht');
 }
 
 /* ═══════════════════════════════════════════════
-   PARTIE-DROPDOWN
+   PARTY DROPDOWN
 ═══════════════════════════════════════════════ */
 
 /**
- * Aktualisiert die Beschriftung des Partie-Dropdowns.
+ * Updates the label of the party number dropdown.
  */
-export function renderSchlauchPartieDropdownLabel() {
+export function renderHosePartyDropdownLabel() {
     let last = 'Keine vorhanden';
-    if (state.schlauchEditingParties.length > 0) {
-        last = state.schlauchEditingParties[state.schlauchEditingParties.length - 1].value;
+    if (state.hoseEditingParties.length > 0) {
+        last = state.hoseEditingParties[state.hoseEditingParties.length - 1].value;
     }
     document.getElementById('sc-pn-label').textContent = last;
 }
 
 /**
- * Öffnet oder schließt das Partie-Dropdown.
- * @param {MouseEvent} event - Das Klick-Event.
+ * Toggles the party number dropdown open or closed.
+ * @param {MouseEvent} event - The click event.
  */
-export function toggleSchlauchPartieDropdown(event) {
+export function toggleHosePartyDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('sc-partie-dropdown');
     const opening  = !dropdown.classList.contains('open');
     dropdown.classList.toggle('open');
     if (opening) {
-        populateSchlauchPartieList();
+        populateHosePartyList();
     }
     document.getElementById('sc-pn-new-row').style.display = 'none';
 }
 
 /**
- * Befüllt die Partie-Liste im Dropdown mit den aktuellen Einträgen.
+ * Fills the party list in the dropdown with current entries.
  */
-function populateSchlauchPartieList() {
+function populateHosePartyList() {
     const listEl = document.getElementById('sc-pn-list');
-    if (state.schlauchEditingParties.length === 0) {
+    if (state.hoseEditingParties.length === 0) {
         listEl.innerHTML = '<li class="pn-empty">Noch keine Partie-Nummern</li>';
         return;
     }
-    const reversed = [...state.schlauchEditingParties].reverse();
-    listEl.innerHTML = reversed.map(partie => returnPartieItemTemplate(partie)).join('');
+    const reversed = [...state.hoseEditingParties].reverse();
+    listEl.innerHTML = reversed.map(party => returnPartieItemTemplate(party)).join('');
 }
 
 /**
- * Zeigt das Eingabefeld für eine neue Partie-Nummer an.
+ * Shows the input field for a new party number.
  */
-export function openSchlauchNewPartieInput() {
+export function openHoseNewPartyInput() {
     document.getElementById('sc-partie-dropdown').classList.remove('open');
     const row = document.getElementById('sc-pn-new-row');
     row.style.display = 'flex';
@@ -206,45 +206,45 @@ export function openSchlauchNewPartieInput() {
 }
 
 /**
- * Bestätigt und speichert eine neue Partie-Nummer im State.
+ * Confirms and saves a new party number to the state.
  */
-export function confirmSchlauchNewPartie() {
+export function confirmHoseNewParty() {
     const value = document.getElementById('sc-pn-new-input').value.trim();
     if (!value) {
         showToast('Bitte Partie-Nummer eingeben.');
         return;
     }
     const now = new Date();
-    state.schlauchEditingParties.push({
+    state.hoseEditingParties.push({
         value,
         addedAt:   now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
                  + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
         addedAtMs: now.getTime(),
     });
-    document.getElementById('sc-pn-new-row').style.display  = 'none';
-    document.getElementById('sc-pn-new-input').value        = '';
-    renderSchlauchPartieDropdownLabel();
+    document.getElementById('sc-pn-new-row').style.display = 'none';
+    document.getElementById('sc-pn-new-input').value       = '';
+    renderHosePartyDropdownLabel();
     showToast('✓ Partie-Nummer hinzugefügt');
 }
 
 /* ═══════════════════════════════════════════════
-   STANDORT-DROPDOWN (WIESE / ACKER)
+   LOCATION DROPDOWN (WIESE / ACKER)
 ═══════════════════════════════════════════════ */
 
 /**
- * Öffnet oder schließt das Standort-Dropdown.
- * @param {MouseEvent} event - Das Klick-Event.
+ * Toggles the location dropdown open or closed.
+ * @param {MouseEvent} event - The click event.
  */
-export function toggleSchlauchStandortDropdown(event) {
+export function toggleHoseLocationDropdown(event) {
     event.stopPropagation();
     document.getElementById('sc-standort-dropdown').classList.toggle('open');
 }
 
 /**
- * Setzt den Wert des Standort-Dropdowns und aktualisiert die Anzeige.
- * @param {string} value - 'wiese' oder 'acker'.
+ * Sets the location dropdown value and updates the display label.
+ * @param {string} value - 'wiese' or 'acker'.
  */
-export function setSchlauchStandortValue(value) {
+export function setHoseLocationValue(value) {
     let label = 'Wiese';
     if (value === 'acker') {
         label = 'Acker';

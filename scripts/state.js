@@ -1,14 +1,14 @@
 import { showToast, nowTimestamp } from './utils.js';
 
 /* ═══════════════════════════════════════════════
-   KONSTANTEN
+   CONSTANTS
 ═══════════════════════════════════════════════ */
 
-export const STORAGE_KEY        = 'lager_slots';
-export const COL_KEY            = 'lager_col_idx';
-export const ARCHIVE_KEY        = 'lager_archiv';
-export const SCHLAUCH_KEY       = 'lager_schlauch_slots';
-export const COL_OPTIONS        = [2, 3];
+export const STORAGE_KEY  = 'lager_slots';
+export const COL_KEY      = 'lager_col_idx';
+export const ARCHIVE_KEY  = 'lager_archiv';
+export const HOSE_KEY     = 'lager_schlauch_slots';
+export const COL_OPTIONS  = [2, 3];
 
 export const STATUS_LABELS = {
     leer:       'Ungereinigt',
@@ -22,21 +22,21 @@ export const STATUS_LABELS = {
 ═══════════════════════════════════════════════ */
 
 export const state = {
-    slots:                  [],
-    nextId:                 1,
-    editingId:              null,
-    editingPartitions:      [],
-    activePartitionIdx:     0,
-    tempEntries:            [],
-    editingParties:         [],
-    colIdx:                 0,
+    slots:              [],
+    nextId:             1,
+    editingId:          null,
+    editingPartitions:  [],
+    activePartitionIdx: 0,
+    tempEntries:        [],
+    editingParties:     [],
+    colIdx:             0,
 
-    activeView:             'lager',
-    schlauchSlots:          [],
-    schlauchNextId:         1,
-    editingSchlauchId:      null,
-    schlauchEditingParties: [],
-    schlauchNotizEntries:   [],
+    activeView:         'lager',
+    hoseSlots:          [],
+    hoseNextId:         1,
+    editingHoseId:      null,
+    hoseEditingParties: [],
+    hoseNoteEntries:    [],
 };
 
 /* ═══════════════════════════════════════════════
@@ -48,77 +48,77 @@ export function loadFromStorage() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
             state.slots = JSON.parse(raw);
-            state.slots.forEach((s, i) => {
-                if (s.slotNumber == null) s.slotNumber = i + 5;
-                if (!s.partitions) {
-                    s.partitions = [{
+            state.slots.forEach((slot, index) => {
+                if (slot.slotNumber == null) slot.slotNumber = index + 5;
+                if (!slot.partitions) {
+                    slot.partitions = [{
                         label:        'A',
-                        fruchtart:    s.fruchtart || '',
-                        parties:      s.parties || [],
-                        temperatures: s.temperatures || [],
+                        fruchtart:    slot.fruchtart || '',
+                        parties:      slot.parties || [],
+                        temperatures: slot.temperatures || [],
                     }];
                 }
             });
-            state.nextId = state.slots.reduce((max, s) => Math.max(max, s.id), 0) + 1;
+            state.nextId = state.slots.reduce((max, slot) => Math.max(max, slot.id), 0) + 1;
         } else {
             state.slots  = defaultSlots();
             state.nextId = state.slots.length + 1;
         }
-    } catch (e) {
-        console.warn('localStorage lesen fehlgeschlagen:', e);
+    } catch (error) {
+        console.warn('Failed to read from localStorage:', error);
         state.slots  = defaultSlots();
         state.nextId = state.slots.length + 1;
     }
 
     try {
-        const ci = localStorage.getItem(COL_KEY);
-        if (ci !== null) state.colIdx = parseInt(ci, 10);
+        const colIndex = localStorage.getItem(COL_KEY);
+        if (colIndex !== null) state.colIdx = parseInt(colIndex, 10);
     } catch (_) { }
 }
 
-function writeToArchive(fachKey, fruchtKey, partienValues, temperaturen) {
-    const raw    = localStorage.getItem(ARCHIVE_KEY);
-    const archiv = raw ? JSON.parse(raw) : {};
+function writeToArchive(compartmentKey, grainKey, partyValues, temperatures) {
+    const raw     = localStorage.getItem(ARCHIVE_KEY);
+    const archive = raw ? JSON.parse(raw) : {};
 
-    if (!archiv[fachKey]) {
-        archiv[fachKey] = {};
+    if (!archive[compartmentKey]) {
+        archive[compartmentKey] = {};
     }
 
-    const now      = new Date();
-    const datumKey = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                   + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const now     = new Date();
+    const dateKey = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-    if (!archiv[fachKey][datumKey]) {
-        archiv[fachKey][datumKey] = {};
+    if (!archive[compartmentKey][dateKey]) {
+        archive[compartmentKey][dateKey] = {};
     }
 
-    archiv[fachKey][datumKey][fruchtKey] = {
-        partien:      partienValues,
-        temperaturen: temperaturen,
+    archive[compartmentKey][dateKey][grainKey] = {
+        partien:      partyValues,
+        temperaturen: temperatures,
     };
 
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archiv));
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
 }
 
 export function archiveSlotData(slot) {
     try {
-        const fachKey = `Lager ${slot.slotNumber}`;
+        const compartmentKey = `Lager ${slot.slotNumber}`;
         slot.partitions.forEach(partition => {
-            const fruchtKey = partition.fruchtart || 'Unbekannt';
-            writeToArchive(fachKey, fruchtKey, partition.parties.map(x => x.value), partition.temperatures);
+            const grainKey = partition.fruchtart || 'Unbekannt';
+            writeToArchive(compartmentKey, grainKey, partition.parties.map(party => party.value), partition.temperatures);
         });
-    } catch (e) {
-        console.warn('Archivierung fehlgeschlagen:', e);
+    } catch (error) {
+        console.warn('Archiving failed:', error);
     }
 }
 
 export function archivePartitionData(slot, partition) {
     try {
-        const fachKey   = `Lager ${slot.slotNumber}`;
-        const fruchtKey = partition.fruchtart || 'Unbekannt';
-        writeToArchive(fachKey, fruchtKey, partition.parties.map(x => x.value), partition.temperatures);
-    } catch (e) {
-        console.warn('Archivierung fehlgeschlagen:', e);
+        const compartmentKey = `Lager ${slot.slotNumber}`;
+        const grainKey       = partition.fruchtart || 'Unbekannt';
+        writeToArchive(compartmentKey, grainKey, partition.parties.map(party => party.value), partition.temperatures);
+    } catch (error) {
+        console.warn('Archiving failed:', error);
     }
 }
 
@@ -126,44 +126,44 @@ export function saveToStorage() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state.slots));
         localStorage.setItem(COL_KEY, String(state.colIdx));
-    } catch (e) {
-        console.warn('localStorage schreiben fehlgeschlagen:', e);
+    } catch (error) {
+        console.warn('Failed to write to localStorage:', error);
         showToast('⚠ Speichern fehlgeschlagen – localStorage voll?');
     }
 }
 
 /* ═══════════════════════════════════════════════
-   SCHLAUCH STORAGE
+   HOSE STORAGE
 ═══════════════════════════════════════════════ */
 
 /**
- * Lädt Schlauch-Daten aus dem localStorage in den State.
+ * Loads hose data from localStorage into the state.
  */
-export function loadSchlauchFromStorage() {
+export function loadHoseFromStorage() {
     try {
-        const raw = localStorage.getItem(SCHLAUCH_KEY);
+        const raw = localStorage.getItem(HOSE_KEY);
         if (raw) {
-            state.schlauchSlots    = JSON.parse(raw);
-            state.schlauchNextId   = state.schlauchSlots.reduce((max, s) => Math.max(max, s.id), 0) + 1;
+            state.hoseSlots  = JSON.parse(raw);
+            state.hoseNextId = state.hoseSlots.reduce((max, hose) => Math.max(max, hose.id), 0) + 1;
         } else {
-            state.schlauchSlots  = [];
-            state.schlauchNextId = 1;
+            state.hoseSlots  = [];
+            state.hoseNextId = 1;
         }
-    } catch (e) {
-        console.warn('Schlauch localStorage lesen fehlgeschlagen:', e);
-        state.schlauchSlots  = [];
-        state.schlauchNextId = 1;
+    } catch (error) {
+        console.warn('Failed to read hose data from localStorage:', error);
+        state.hoseSlots  = [];
+        state.hoseNextId = 1;
     }
 }
 
 /**
- * Speichert Schlauch-Daten aus dem State in den localStorage.
+ * Saves hose data from the state into localStorage.
  */
-export function saveSchlauchToStorage() {
+export function saveHoseToStorage() {
     try {
-        localStorage.setItem(SCHLAUCH_KEY, JSON.stringify(state.schlauchSlots));
-    } catch (e) {
-        console.warn('Schlauch localStorage schreiben fehlgeschlagen:', e);
+        localStorage.setItem(HOSE_KEY, JSON.stringify(state.hoseSlots));
+    } catch (error) {
+        console.warn('Failed to write hose data to localStorage:', error);
         showToast('⚠ Speichern fehlgeschlagen – localStorage voll?');
     }
 }

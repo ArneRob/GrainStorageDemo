@@ -3,14 +3,22 @@ import { showToast } from './utils.js';
 import { returnPartieItemTemplate } from './template.js';
 
 /* ═══════════════════════════════════════════════
-   STATUS-DROPDOWN
+   STATUS DROPDOWN
 ═══════════════════════════════════════════════ */
 
+/**
+ * Toggles the status dropdown open or closed.
+ * @param {MouseEvent} event - The click event.
+ */
 export function toggleDropdown(event) {
     event.stopPropagation();
     document.getElementById('status-dropdown').classList.toggle('open');
 }
 
+/**
+ * Selects a status from the dropdown list.
+ * @param {HTMLElement} listItem - The clicked list item element.
+ */
 export function selectStatus(listItem) {
     const value = listItem.dataset.value;
     document.getElementById('f-status').value = value;
@@ -20,14 +28,18 @@ export function selectStatus(listItem) {
     document.getElementById('status-dropdown').classList.remove('open');
 }
 
+/**
+ * Sets the status dropdown to a specific value.
+ * @param {string} value - The status value to select.
+ */
 export function setDropdownValue(value) {
     const listItem = document.querySelector(`.cs-item[data-value="${value}"]`);
     if (listItem) selectStatus(listItem);
 }
 
 /**
- * Aktiviert oder deaktiviert den Status-Dropdown-Button.
- * @param {boolean} disabled - true = gesperrt, false = bedienbar.
+ * Enables or disables the status dropdown trigger button.
+ * @param {boolean} disabled - true to lock, false to enable.
  */
 export function setStatusDropdownDisabled(disabled) {
     const trigger = document.getElementById('status-trigger');
@@ -38,8 +50,8 @@ export function setStatusDropdownDisabled(disabled) {
 }
 
 /**
- * Blendet die "Voll"-Option im Status-Dropdown aus oder ein.
- * @param {boolean} hidden - true = ausgeblendet, false = sichtbar.
+ * Shows or hides the "Voll" option in the status dropdown.
+ * @param {boolean} hidden - true to hide, false to show.
  */
 export function setVollOptionHidden(hidden) {
     const vollItem = document.querySelector('.cs-item[data-value="voll"]');
@@ -48,9 +60,12 @@ export function setVollOptionHidden(hidden) {
 }
 
 /* ═══════════════════════════════════════════════
-   PARTIE-DROPDOWN
+   PARTY DROPDOWN
 ═══════════════════════════════════════════════ */
 
+/**
+ * Updates the label of the party number dropdown.
+ */
 export function renderPartieDropdownLabel() {
     let last = 'Keine vorhanden';
     if (state.editingParties.length > 0) {
@@ -59,6 +74,10 @@ export function renderPartieDropdownLabel() {
     document.getElementById('pn-label').textContent = last;
 }
 
+/**
+ * Toggles the party number dropdown open or closed.
+ * @param {MouseEvent} event - The click event.
+ */
 export function togglePartieDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('partie-dropdown');
@@ -68,6 +87,9 @@ export function togglePartieDropdown(event) {
     document.getElementById('pn-new-row').style.display = 'none';
 }
 
+/**
+ * Fills the party list in the dropdown with current entries.
+ */
 function populatePartieList() {
     const list = document.getElementById('pn-list');
     if (state.editingParties.length === 0) {
@@ -75,9 +97,12 @@ function populatePartieList() {
         return;
     }
     const reversed = [...state.editingParties].reverse();
-    list.innerHTML = reversed.map(partie => returnPartieItemTemplate(partie)).join('');
+    list.innerHTML = reversed.map(party => returnPartieItemTemplate(party)).join('');
 }
 
+/**
+ * Shows the input field for adding a new party number.
+ */
 export function openNewPartieInput() {
     document.getElementById('partie-dropdown').classList.remove('open');
     const row = document.getElementById('pn-new-row');
@@ -86,6 +111,9 @@ export function openNewPartieInput() {
     document.getElementById('pn-new-input').focus();
 }
 
+/**
+ * Confirms and saves a new party number to the editing state.
+ */
 export function confirmNewPartie() {
     const value = document.getElementById('pn-new-input').value.trim();
     if (!value) { showToast('Bitte Partie-Nummer eingeben.'); return; }

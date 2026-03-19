@@ -3,17 +3,29 @@ import { state } from './state.js';
 import { returnTempEntryTemplate } from './template.js';
 
 /* ═══════════════════════════════════════════════
-   TEMPERATUR-EINTRÄGE
+   TEMPERATURE ENTRIES
 ═══════════════════════════════════════════════ */
 
+/**
+ * Returns true if a temperature entry is locked (older than 1 minute).
+ * @param {object} entry - The temperature entry.
+ * @returns {boolean}
+ */
 export function isTempLocked(entry) {
     return Date.now() - entry.savedAtMs > 60000;
 }
 
+/**
+ * Toggles a temperature entry open or closed.
+ * @param {HTMLElement} el - The entry element.
+ */
 export function toggleTempEntry(el) {
     el.classList.toggle('open');
 }
 
+/**
+ * Renders the temperature list in the warehouse modal.
+ */
 export function renderTempList() {
     const list = document.getElementById('temp-list');
     if (!list) return;
@@ -29,6 +41,9 @@ export function renderTempList() {
     }).join('');
 }
 
+/**
+ * Opens the temperature entry input overlay.
+ */
 export function openTempForm() {
     document.getElementById('t-von').value        = '';
     document.getElementById('t-bis').value        = '';
@@ -38,10 +53,16 @@ export function openTempForm() {
     document.getElementById('t-von').focus();
 }
 
+/**
+ * Closes the temperature entry input overlay.
+ */
 export function closeTempForm() {
     document.getElementById('temp-overlay').classList.remove('open');
 }
 
+/**
+ * Validates and saves a new temperature entry to the state.
+ */
 export function saveTempEntry() {
     const von        = parseFloat(document.getElementById('t-von').value);
     const bis        = parseFloat(document.getElementById('t-bis').value);

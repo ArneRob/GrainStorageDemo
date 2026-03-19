@@ -5,12 +5,12 @@ import { setDropdownValue, setStatusDropdownDisabled, setVollOptionHidden } from
 import { render } from './render.js';
 
 /* ═══════════════════════════════════════════════
-   STATUS-LOGIK
+   STATUS LOGIC
 ═══════════════════════════════════════════════ */
 
 /**
- * Prüft ob mindestens eine Partition Inhalt hat (Fruchtart oder Partie-Nummer).
- * @returns {boolean} true wenn mindestens eine Partition befüllt ist.
+ * Returns true if at least one partition has content (grain type or party number).
+ * @returns {boolean}
  */
 function hasSlotContent() {
     return state.editingPartitions.some(partition =>
@@ -19,9 +19,9 @@ function hasSlotContent() {
 }
 
 /**
- * Aktualisiert den Status-Dropdown basierend auf dem Inhalt der Partitionen.
- * Bei befülltem Fach: Dropdown gesperrt, Status auf "Voll" gesetzt.
- * Bei leerem Fach: Dropdown bedienbar, nur leer/gereinigt/reserviert auswählbar.
+ * Updates the status dropdown based on partition content.
+ * Filled slot: dropdown locked, status set to "Voll".
+ * Empty slot: dropdown enabled, only leer/gereinigt/reserviert selectable.
  */
 function updateStatusDropdownForContent() {
     const slotHasContent = hasSlotContent();
@@ -41,12 +41,16 @@ function updateStatusDropdownForContent() {
    MODAL
 ═══════════════════════════════════════════════ */
 
-/** Schließt das Haupt-Overlay. */
+/**
+ * Closes the main warehouse overlay.
+ */
 export function closeModal() {
     document.getElementById('overlay').classList.remove('open');
 }
 
-/** Öffnet das Modal zum Anlegen eines neuen Lagers. */
+/**
+ * Opens the modal to add a new warehouse slot.
+ */
 export function openAdd() {
     state.editingId          = null;
     state.editingPartitions  = [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }];
@@ -67,22 +71,22 @@ export function openAdd() {
 }
 
 /**
- * Erstellt eine tiefe Kopie aller Partitionen eines Slots für den Bearbeitungszustand.
- * @param {object} slot - Der Slot aus state.slots.
- * @returns {Array} Kopierte Partitionen.
+ * Builds a deep copy of all partitions of a slot for the editing state.
+ * @param {object} slot - The slot from state.slots.
+ * @returns {Array} Copied partitions.
  */
 function buildEditingPartitions(slot) {
     return slot.partitions.map(partition => ({
         label:        partition.label,
         fruchtart:    partition.fruchtart || '',
-        parties:      partition.parties ? partition.parties.map(x => ({ ...x })) : [],
-        temperatures: partition.temperatures ? [...partition.temperatures] : [],
+        parties:      partition.parties      ? partition.parties.map(party => ({ ...party }))        : [],
+        temperatures: partition.temperatures ? [...partition.temperatures]                            : [],
     }));
 }
 
 /**
- * Setzt alle DOM-Elemente des Modals für einen bestehenden Slot und öffnet das Overlay.
- * @param {object} slot - Der Slot aus state.slots.
+ * Sets all DOM elements in the modal for an existing slot and opens the overlay.
+ * @param {object} slot - The slot from state.slots.
  */
 function showModalForSlot(slot) {
     document.getElementById('modal-title').textContent     = `Lager ${slot.slotNumber}`;
@@ -102,11 +106,11 @@ function showModalForSlot(slot) {
 }
 
 /**
- * Öffnet das Modal zum Bearbeiten eines bestehenden Slots.
- * @param {number} id - Die ID des zu bearbeitenden Slots.
+ * Opens the modal to edit an existing warehouse slot.
+ * @param {number} id - The ID of the slot to edit.
  */
 export function openEdit(id) {
-    const slot = state.slots.find(s => s.id === id);
+    const slot = state.slots.find(slot => slot.id === id);
     if (!slot) return;
     state.editingId          = id;
     state.editingPartitions  = buildEditingPartitions(slot);
@@ -117,27 +121,28 @@ export function openEdit(id) {
 }
 
 /**
- * Ermittelt die Lagernummer – beim Bearbeiten aus dem Slot, beim Anlegen aus dem Input.
- * @returns {number} Die Lagernummer.
+ * Resolves the slot number – from the existing slot when editing,
+ * or from the input field when creating a new slot.
+ * @returns {number} The slot number.
  */
 function resolveSlotNumber() {
     if (state.editingId !== null) {
-        return state.slots.find(s => s.id === state.editingId)?.slotNumber;
+        return state.slots.find(slot => slot.id === state.editingId)?.slotNumber;
     }
     return parseInt(document.getElementById('f-num')?.value, 10) || state.nextId + 4;
 }
 
 /**
- * Prüft ob alle Partitionen konsistent befüllt sind.
- * Erlaubt: komplett leer (kein Fruchtart, keine Partienummern).
- * Nicht erlaubt: nur Fruchtart ohne Partienummer oder umgekehrt.
- * @returns {boolean} true wenn valide, false wenn nicht.
+ * Validates that all partitions are consistently filled.
+ * Allowed: completely empty (no grain type, no party numbers).
+ * Not allowed: grain type without party number, or vice versa.
+ * @returns {boolean} true if valid, false otherwise.
  */
 function validatePartitions() {
     for (let i = 0; i < state.editingPartitions.length; i++) {
-        const partition   = state.editingPartitions[i];
-        const hasFrucht   = partition.fruchtart.trim().length > 0;
-        const hasParties  = partition.parties.length > 0;
+        const partition  = state.editingPartitions[i];
+        const hasFrucht  = partition.fruchtart.trim().length > 0;
+        const hasParties = partition.parties.length > 0;
 
         if (hasFrucht && !hasParties) {
             showToast(`Partition ${partition.label}: Fruchtart angegeben – bitte auch eine Partie-Nummer hinzufügen.`);
@@ -152,14 +157,14 @@ function validatePartitions() {
 }
 
 /**
- * Schreibt die Änderungen in den bestehenden Slot oder legt einen neuen an.
- * @param {number} slotNumber - Die Lagernummer.
- * @param {string} status     - Der neue Status.
- * @param {string} updated    - Zeitstempel der Änderung.
+ * Writes the changes to an existing slot or creates a new one.
+ * @param {number} slotNumber - The slot number.
+ * @param {string} status     - The new status.
+ * @param {string} updated    - Timestamp of the change.
  */
 function applySlotChanges(slotNumber, status, updated) {
     if (state.editingId !== null) {
-        const slot = state.slots.find(s => s.id === state.editingId);
+        const slot = state.slots.find(slot => slot.id === state.editingId);
         if (slot) {
             slot.partitions = state.editingPartitions;
             slot.status     = status;
@@ -170,7 +175,9 @@ function applySlotChanges(slotNumber, status, updated) {
     }
 }
 
-/** Speichert den aktuellen Bearbeitungszustand des Slots. */
+/**
+ * Saves the current editing state of the slot.
+ */
 export function saveSlot() {
     saveCurrentPartitionState();
     if (!validatePartitions()) return;
@@ -196,9 +203,9 @@ export function saveSlot() {
 }
 
 /**
- * Archiviert die aktive Partition und hebt die Teilung auf.
- * @param {object} slot - Der Slot aus state.slots.
- * @returns {boolean} true wenn bestätigt und durchgeführt, false bei Abbruch.
+ * Archives the active partition and removes the split.
+ * @param {object} slot - The slot from state.slots.
+ * @returns {boolean} true if confirmed and executed, false if cancelled.
  */
 function clearActivePartition(slot) {
     const partition = slot.partitions[state.activePartitionIdx];
@@ -210,9 +217,9 @@ function clearActivePartition(slot) {
 }
 
 /**
- * Archiviert das gesamte Lager und setzt es auf leer zurück.
- * @param {object} slot - Der Slot aus state.slots.
- * @returns {boolean} true wenn bestätigt und durchgeführt, false bei Abbruch.
+ * Archives the entire slot and resets it to empty.
+ * @param {object} slot - The slot from state.slots.
+ * @returns {boolean} true if confirmed and executed, false if cancelled.
  */
 function clearSinglePartition(slot) {
     if (!confirm(`Lager ${slot.slotNumber} wirklich leeren? Die Daten werden archiviert.`)) return false;
@@ -222,10 +229,12 @@ function clearSinglePartition(slot) {
     return true;
 }
 
-/** Leert das aktive Lager oder die aktive Partition und archiviert die Daten. */
+/**
+ * Empties the active slot or partition and archives its data.
+ */
 export function clearSlot() {
     if (state.editingId === null) return;
-    const slot = state.slots.find(s => s.id === state.editingId);
+    const slot = state.slots.find(slot => slot.id === state.editingId);
     if (!slot) return;
 
     let cleared;
@@ -243,12 +252,14 @@ export function clearSlot() {
     showToast(`✓ Lager ${slot.slotNumber} geleert und archiviert`);
 }
 
-/** Löscht das aktive Lager vollständig nach Bestätigung. */
+/**
+ * Permanently deletes the active slot after confirmation.
+ */
 export function deleteSlot() {
     if (state.editingId === null) return;
-    const slot = state.slots.find(s => s.id === state.editingId);
+    const slot = state.slots.find(slot => slot.id === state.editingId);
     if (!confirm(`Lager ${slot.slotNumber} wirklich löschen?`)) return;
-    state.slots = state.slots.filter(s => s.id !== state.editingId);
+    state.slots = state.slots.filter(slot => slot.id !== state.editingId);
     saveToStorage();
     closeModal();
     render();

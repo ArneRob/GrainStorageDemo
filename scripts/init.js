@@ -1,4 +1,4 @@
-import { state, loadFromStorage, loadSchlauchFromStorage } from './state.js';
+import { state, loadFromStorage, loadHoseFromStorage } from './state.js';
 import { logout } from './utils.js';
 import { render, cycleLayout, setActiveView } from './render.js';
 import { openAdd, openEdit, closeModal, saveSlot, clearSlot, deleteSlot } from './modal.js';
@@ -6,26 +6,26 @@ import { addPartition } from './partition.js';
 import { toggleDropdown, selectStatus, togglePartieDropdown, openNewPartieInput, confirmNewPartie } from './dropdown.js';
 import { openTempForm, closeTempForm, saveTempEntry, toggleTempEntry } from './temperature.js';
 import {
-    openSchlauchAdd,
-    openSchlauchEdit,
-    closeSchlauchModal,
-    saveSchlauch,
-    deleteSchlauch,
-    toggleSchlauchPartieDropdown,
-    openSchlauchNewPartieInput,
-    confirmSchlauchNewPartie,
-    toggleSchlauchStandortDropdown,
-    setSchlauchStandortValue,
+    openHoseAdd,
+    openHoseEdit,
+    closeHoseModal,
+    saveHose,
+    deleteHose,
+    toggleHosePartyDropdown,
+    openHoseNewPartyInput,
+    confirmHoseNewParty,
+    toggleHoseLocationDropdown,
+    setHoseLocationValue,
 } from './schlauch-modal.js';
-import { openNotizForm, closeNotizForm, saveNotizEntry, toggleNotizEntry } from './schlauch-notiz.js';
+import { openNoteForm, closeNoteForm, saveNoteEntry, toggleNoteEntry } from './schlauch-notiz.js';
 
 /* ═══════════════════════════════════════════════
-   EVENT HANDLER & INIT
+   EVENT HANDLERS & INIT
 ═══════════════════════════════════════════════ */
 
 function init() {
     loadFromStorage();
-    loadSchlauchFromStorage();
+    loadHoseFromStorage();
     render();
     document.getElementById('sub').textContent =
         `${state.slots.length} Fächer geladen · Klicke auf ein Lager zum Bearbeiten`;
@@ -35,30 +35,30 @@ function init() {
     document.getElementById('layout-btn').addEventListener('click', cycleLayout);
     document.getElementById('add-btn').addEventListener('click', () => {
         if (state.activeView === 'schlauch') {
-            openSchlauchAdd();
+            openHoseAdd();
         } else {
             openAdd();
         }
     });
 
-    // View-Tabs
+    // View tabs
     document.getElementById('tab-lager').addEventListener('click',    () => setActiveView('lager'));
     document.getElementById('tab-schlauch').addEventListener('click', () => setActiveView('schlauch'));
 
-    // Grid – Event-Delegation für Lager- und Schlauch-Karten
+    // Grid – event delegation for warehouse and hose cards
     document.getElementById('grid').addEventListener('click', (event) => {
-        const schlauchCard = event.target.closest('.schlauch-card');
-        const schlauchAdd  = event.target.closest('[data-action="add-schlauch"]');
-        const lagerCard    = event.target.closest('.slot');
-        const lagerAdd     = event.target.closest('[data-action="add-slot"]');
+        const hoseCard    = event.target.closest('.schlauch-card');
+        const hoseAddBtn  = event.target.closest('[data-action="add-schlauch"]');
+        const slotCard    = event.target.closest('.slot');
+        const slotAddBtn  = event.target.closest('[data-action="add-slot"]');
 
-        if (schlauchCard) { openSchlauchEdit(parseInt(schlauchCard.dataset.schlauchId, 10)); return; }
-        if (schlauchAdd)  { openSchlauchAdd(); return; }
-        if (lagerCard)    { openEdit(parseInt(lagerCard.dataset.id, 10)); return; }
-        if (lagerAdd)     { openAdd(); }
+        if (hoseCard)   { openHoseEdit(parseInt(hoseCard.dataset.schlauchId, 10)); return; }
+        if (hoseAddBtn) { openHoseAdd(); return; }
+        if (slotCard)   { openEdit(parseInt(slotCard.dataset.id, 10)); return; }
+        if (slotAddBtn) { openAdd(); }
     });
 
-    // Lager Haupt-Overlay
+    // Warehouse main overlay
     document.getElementById('overlay').addEventListener('click', (event) => {
         if (event.target.id === 'overlay') closeModal();
     });
@@ -70,13 +70,13 @@ function init() {
     // Partition
     document.getElementById('add-partition-btn').addEventListener('click', addPartition);
 
-    // Lager Status-Dropdown
+    // Warehouse status dropdown
     document.getElementById('status-trigger').addEventListener('click', toggleDropdown);
     document.querySelectorAll('.cs-item').forEach(listItem => {
         listItem.addEventListener('click', () => selectStatus(listItem));
     });
 
-    // Lager Partie-Dropdown
+    // Warehouse party dropdown
     document.getElementById('partie-trigger').addEventListener('click', togglePartieDropdown);
     document.getElementById('partie-add-btn').addEventListener('click', openNewPartieInput);
     document.getElementById('pn-ok-btn').addEventListener('click', confirmNewPartie);
@@ -84,7 +84,7 @@ function init() {
         if (event.key === 'Enter') { event.preventDefault(); confirmNewPartie(); }
     });
 
-    // Temperatur-Overlay
+    // Temperature overlay
     document.getElementById('temp-overlay').addEventListener('click', (event) => {
         if (event.target.id === 'temp-overlay') closeTempForm();
     });
@@ -92,54 +92,54 @@ function init() {
     document.getElementById('temp-cancel-btn').addEventListener('click', closeTempForm);
     document.getElementById('temp-save-btn').addEventListener('click', saveTempEntry);
 
-    // Temperaturliste – Event-Delegation für dynamische Einträge
+    // Temperature list – event delegation for dynamic entries
     document.getElementById('temp-list').addEventListener('click', (event) => {
         const entry = event.target.closest('.temp-entry');
         if (entry) toggleTempEntry(entry);
     });
 
-    // Schlauch Haupt-Overlay
+    // Hose main overlay
     document.getElementById('schlauch-overlay').addEventListener('click', (event) => {
-        if (event.target.id === 'schlauch-overlay') closeSchlauchModal();
+        if (event.target.id === 'schlauch-overlay') closeHoseModal();
     });
-    document.getElementById('sc-del-btn').addEventListener('click', deleteSchlauch);
-    document.getElementById('sc-modal-cancel-btn').addEventListener('click', closeSchlauchModal);
-    document.getElementById('sc-modal-save-btn').addEventListener('click', saveSchlauch);
+    document.getElementById('sc-del-btn').addEventListener('click', deleteHose);
+    document.getElementById('sc-modal-cancel-btn').addEventListener('click', closeHoseModal);
+    document.getElementById('sc-modal-save-btn').addEventListener('click', saveHose);
 
-    // Schlauch Partie-Dropdown
-    document.getElementById('sc-partie-trigger').addEventListener('click', toggleSchlauchPartieDropdown);
-    document.getElementById('sc-partie-add-btn').addEventListener('click', openSchlauchNewPartieInput);
-    document.getElementById('sc-pn-ok-btn').addEventListener('click', confirmSchlauchNewPartie);
+    // Hose party dropdown
+    document.getElementById('sc-partie-trigger').addEventListener('click', toggleHosePartyDropdown);
+    document.getElementById('sc-partie-add-btn').addEventListener('click', openHoseNewPartyInput);
+    document.getElementById('sc-pn-ok-btn').addEventListener('click', confirmHoseNewParty);
     document.getElementById('sc-pn-new-input').addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') { event.preventDefault(); confirmSchlauchNewPartie(); }
+        if (event.key === 'Enter') { event.preventDefault(); confirmHoseNewParty(); }
     });
 
-    // Schlauch Standort-Dropdown
-    document.getElementById('sc-standort-trigger').addEventListener('click', toggleSchlauchStandortDropdown);
+    // Hose location dropdown
+    document.getElementById('sc-standort-trigger').addEventListener('click', toggleHoseLocationDropdown);
     document.querySelectorAll('.sc-standort-item').forEach(item => {
-        item.addEventListener('click', () => setSchlauchStandortValue(item.dataset.value));
+        item.addEventListener('click', () => setHoseLocationValue(item.dataset.value));
     });
 
-    // Schlauch Notiz-Overlay
+    // Hose note overlay
     document.getElementById('schlauch-notiz-overlay').addEventListener('click', (event) => {
-        if (event.target.id === 'schlauch-notiz-overlay') closeNotizForm();
+        if (event.target.id === 'schlauch-notiz-overlay') closeNoteForm();
     });
-    document.getElementById('sc-notiz-add-btn').addEventListener('click', openNotizForm);
-    document.getElementById('sn-cancel-btn').addEventListener('click', closeNotizForm);
-    document.getElementById('sn-save-btn').addEventListener('click', saveNotizEntry);
+    document.getElementById('sc-notiz-add-btn').addEventListener('click', openNoteForm);
+    document.getElementById('sn-cancel-btn').addEventListener('click', closeNoteForm);
+    document.getElementById('sn-save-btn').addEventListener('click', saveNoteEntry);
 
-    // Schlauch Notiz-Liste – Event-Delegation für dynamische Einträge
+    // Note list – event delegation for dynamic entries
     document.getElementById('sc-notiz-list').addEventListener('click', (event) => {
         const entry = event.target.closest('.temp-entry');
-        if (entry) toggleNotizEntry(entry);
+        if (entry) toggleNoteEntry(entry);
     });
 
-    // Tastatur
+    // Keyboard shortcuts
     document.addEventListener('keydown', (event) => {
-        const lagerOffen   = document.getElementById('overlay').classList.contains('open');
-        const schlauchOffen = document.getElementById('schlauch-overlay').classList.contains('open');
+        const warehouseOpen = document.getElementById('overlay').classList.contains('open');
+        const hoseOpen      = document.getElementById('schlauch-overlay').classList.contains('open');
 
-        if (lagerOffen) {
+        if (warehouseOpen) {
             if (event.key === 'Escape') { closeModal(); return; }
             if (event.key === 'Enter'
                 && event.target.tagName !== 'TEXTAREA'
@@ -149,19 +149,19 @@ function init() {
                 saveSlot();
             }
         }
-        if (schlauchOffen) {
-            if (event.key === 'Escape') { closeSchlauchModal(); return; }
+        if (hoseOpen) {
+            if (event.key === 'Escape') { closeHoseModal(); return; }
             if (event.key === 'Enter'
                 && event.target.tagName !== 'TEXTAREA'
                 && event.target.id !== 'sc-pn-new-input'
                 && event.target.id !== 'sc-f-num') {
                 event.preventDefault();
-                saveSchlauch();
+                saveHose();
             }
         }
     });
 
-    // Alle Dropdowns bei Klick außerhalb schließen
+    // Close all dropdowns on outside click
     document.addEventListener('click', () => {
         document.getElementById('status-dropdown')?.classList.remove('open');
         document.getElementById('partie-dropdown')?.classList.remove('open');

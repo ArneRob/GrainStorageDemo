@@ -2,17 +2,17 @@ import { state, COL_OPTIONS, STATUS_LABELS, saveToStorage } from './state.js';
 import {
     returnStatsTemplate,
     returnSlotCardTemplate,
-    returnSchlauchStatsTemplate,
-    returnSchlauchCardTemplate,
+    returnHoseStatsTemplate,
+    returnHoseCardTemplate,
 } from './template.js';
 
 /* ═══════════════════════════════════════════════
-   VIEW-STEUERUNG
+   VIEW CONTROL
 ═══════════════════════════════════════════════ */
 
 /**
- * Wechselt die aktive Ansicht und rendert neu.
- * @param {string} view - 'lager' oder 'schlauch'.
+ * Switches the active view and re-renders.
+ * @param {string} view - 'lager' or 'schlauch'.
  */
 export function setActiveView(view) {
     state.activeView = view;
@@ -20,16 +20,16 @@ export function setActiveView(view) {
 }
 
 /**
- * Aktualisiert alle view-abhängigen UI-Elemente (Buttons, Legende, Sub-Text, Tabs).
+ * Updates all view-dependent UI elements (buttons, legend, sub text, tabs).
  */
 function updateViewUI() {
-    const isSchlauch = state.activeView === 'schlauch';
+    const isHoseView = state.activeView === 'schlauch';
 
-    if (isSchlauch) {
+    if (isHoseView) {
         document.querySelector('.legend').style.display = 'none';
         document.getElementById('add-btn').textContent  = '+ Schlauch hinzufügen';
         document.getElementById('sub').textContent      =
-            `${state.schlauchSlots.length} Schläuche · Klicke auf einen Schlauch zum Bearbeiten`;
+            `${state.hoseSlots.length} Schläuche · Klicke auf einen Schlauch zum Bearbeiten`;
     } else {
         document.querySelector('.legend').style.display = '';
         document.getElementById('add-btn').textContent  = '+ Lager hinzufügen';
@@ -37,8 +37,8 @@ function updateViewUI() {
             `${state.slots.length} Fächer geladen · Klicke auf ein Lager zum Bearbeiten`;
     }
 
-    document.getElementById('tab-lager').classList.toggle('active', !isSchlauch);
-    document.getElementById('tab-schlauch').classList.toggle('active', isSchlauch);
+    document.getElementById('tab-lager').classList.toggle('active', !isHoseView);
+    document.getElementById('tab-schlauch').classList.toggle('active', isHoseView);
 }
 
 /* ═══════════════════════════════════════════════
@@ -46,11 +46,11 @@ function updateViewUI() {
 ═══════════════════════════════════════════════ */
 
 /**
- * Rendert die Stats-Leiste passend zur aktiven Ansicht.
+ * Renders the stats bar for the active view.
  */
 function renderStats() {
     if (state.activeView === 'schlauch') {
-        document.getElementById('stats').innerHTML = returnSchlauchStatsTemplate(state.schlauchSlots.length);
+        document.getElementById('stats').innerHTML = returnHoseStatsTemplate(state.hoseSlots.length);
         return;
     }
     const counts = { leer: 0, voll: 0, gereinigt: 0, reserviert: 0 };
@@ -59,13 +59,13 @@ function renderStats() {
 }
 
 /* ═══════════════════════════════════════════════
-   GRID – LAGER
+   GRID – WAREHOUSE
 ═══════════════════════════════════════════════ */
 
 /**
- * Rendert das Lager-Grid mit allen Slot-Karten.
+ * Renders the warehouse grid with all slot cards.
  */
-function renderLagerGrid() {
+function renderWarehouseGrid() {
     const cols = COL_OPTIONS[state.colIdx];
     const grid = document.getElementById('grid');
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
@@ -77,77 +77,77 @@ function renderLagerGrid() {
         card.dataset.id = String(slot.id);
 
         const firstPartition = slot.partitions && slot.partitions[0];
-        let lastPartie = '—';
-        let fruchtart  = '';
+        let lastParty = '—';
+        let fruchtart = '';
         if (firstPartition) {
             fruchtart = firstPartition.fruchtart || '';
             if (firstPartition.parties && firstPartition.parties.length > 0) {
-                lastPartie = firstPartition.parties[firstPartition.parties.length - 1].value;
+                lastParty = firstPartition.parties[firstPartition.parties.length - 1].value;
             }
         }
 
-        card.innerHTML = returnSlotCardTemplate(slot, lastPartie, STATUS_LABELS[slot.status], fruchtart, slot.partitions.length);
+        card.innerHTML = returnSlotCardTemplate(slot, lastParty, STATUS_LABELS[slot.status], fruchtart, slot.partitions.length);
         grid.appendChild(card);
     });
 
     const addBtn = document.createElement('button');
-    addBtn.className       = 'add-slot';
-    addBtn.dataset.action  = 'add-slot';
-    addBtn.innerHTML       = '<div class="plus">+</div><div>Lager hinzufügen</div>';
+    addBtn.className      = 'add-slot';
+    addBtn.dataset.action = 'add-slot';
+    addBtn.innerHTML      = '<div class="plus">+</div><div>Lager hinzufügen</div>';
     grid.appendChild(addBtn);
 }
 
 /* ═══════════════════════════════════════════════
-   GRID – SCHLÄUCHE
+   GRID – HOSES
 ═══════════════════════════════════════════════ */
 
 /**
- * Rendert das Schläuche-Grid mit allen Schlauch-Karten.
+ * Renders the hose grid with all hose cards.
  */
-function renderSchlauchGrid() {
+function renderHoseGrid() {
     const cols = COL_OPTIONS[state.colIdx];
     const grid = document.getElementById('grid');
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     grid.innerHTML = '';
 
-    [...state.schlauchSlots].sort((a, b) => a.slotNumber - b.slotNumber).forEach((schlauch) => {
+    [...state.hoseSlots].sort((a, b) => a.slotNumber - b.slotNumber).forEach((hose) => {
         const card = document.createElement('div');
-        card.className             = 'schlauch-card';
-        card.dataset.schlauchId    = String(schlauch.id);
+        card.className          = 'schlauch-card';
+        card.dataset.schlauchId = String(hose.id);
 
-        let lastPartie = '—';
-        if (schlauch.parties && schlauch.parties.length > 0) {
-            lastPartie = schlauch.parties[schlauch.parties.length - 1].value;
+        let lastParty = '—';
+        if (hose.parties && hose.parties.length > 0) {
+            lastParty = hose.parties[hose.parties.length - 1].value;
         }
 
-        card.innerHTML = returnSchlauchCardTemplate(schlauch, lastPartie);
+        card.innerHTML = returnHoseCardTemplate(hose, lastParty);
         grid.appendChild(card);
     });
 
     const addBtn = document.createElement('button');
-    addBtn.className       = 'add-slot';
-    addBtn.dataset.action  = 'add-schlauch';
-    addBtn.innerHTML       = '<div class="plus">+</div><div>Schlauch hinzufügen</div>';
+    addBtn.className      = 'add-slot';
+    addBtn.dataset.action = 'add-schlauch';
+    addBtn.innerHTML      = '<div class="plus">+</div><div>Schlauch hinzufügen</div>';
     grid.appendChild(addBtn);
 }
 
 /**
- * Rendert das Grid passend zur aktiven Ansicht.
+ * Renders the grid for the active view.
  */
 function renderGrid() {
     if (state.activeView === 'schlauch') {
-        renderSchlauchGrid();
+        renderHoseGrid();
         return;
     }
-    renderLagerGrid();
+    renderWarehouseGrid();
 }
 
 /* ═══════════════════════════════════════════════
-   HAUPT-RENDER
+   MAIN RENDER
 ═══════════════════════════════════════════════ */
 
 /**
- * Rendert Stats, Grid und UI-Elemente vollständig neu.
+ * Fully re-renders stats, grid, and UI elements.
  */
 export function render() {
     renderStats();
@@ -156,7 +156,7 @@ export function render() {
 }
 
 /**
- * Wechselt das Grid-Layout und speichert den neuen Zustand.
+ * Cycles to the next grid layout and saves the new state.
  */
 export function cycleLayout() {
     state.colIdx = (state.colIdx + 1) % COL_OPTIONS.length;

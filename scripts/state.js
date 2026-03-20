@@ -76,28 +76,57 @@ export function loadFromStorage() {
     } catch (_) { }
 }
 
+/**
+ * Reads and parses the archive object from localStorage.
+ * @returns {Object} The parsed archive, or an empty object if none exists.
+ */
+function loadArchive() {
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    if (raw) {
+        return JSON.parse(raw);
+    }
+    return {};
+}
+
+/**
+ * Writes the archive object back to localStorage.
+ * @param {Object} archive - The archive object to persist.
+ */
+function saveArchive(archive) {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
+}
+
+/**
+ * Builds a German-formatted date/time string used as the archive entry key.
+ * @returns {string} e.g. "20.03.2026 14:05"
+ */
+function buildArchiveDateKey() {
+    const now = new Date();
+    const date = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const time = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return `${date} ${time}`;
+}
+
+/**
+ * Writes a partition's data into the archive under the given compartment and grain key.
+ * @param {string} compartmentKey - e.g. "Lager 5"
+ * @param {string} grainKey - e.g. "Hafer"
+ * @param {string[]} partyValues - List of party numbers.
+ * @param {Object[]} temperatures - List of temperature entries.
+ */
 function writeToArchive(compartmentKey, grainKey, partyValues, temperatures) {
-    const raw     = localStorage.getItem(ARCHIVE_KEY);
-    const archive = raw ? JSON.parse(raw) : {};
+    const archive = loadArchive();
+    const dateKey = buildArchiveDateKey();
 
-    if (!archive[compartmentKey]) {
-        archive[compartmentKey] = {};
-    }
-
-    const now     = new Date();
-    const dateKey = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
-    if (!archive[compartmentKey][dateKey]) {
-        archive[compartmentKey][dateKey] = {};
-    }
+    if (!archive[compartmentKey]) archive[compartmentKey] = {};
+    if (!archive[compartmentKey][dateKey]) archive[compartmentKey][dateKey] = {};
 
     archive[compartmentKey][dateKey][grainKey] = {
         partien:      partyValues,
         temperaturen: temperatures,
     };
 
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
+    saveArchive(archive);
 }
 
 export function archiveSlotData(slot) {

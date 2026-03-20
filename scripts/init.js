@@ -18,14 +18,21 @@ import {
    EVENT HANDLERS & INIT
 ═══════════════════════════════════════════════ */
 
-function init() {
+/**
+ * Lädt Daten aus dem Storage, rendert die Ansicht und setzt den Untertitel.
+ */
+function initApp() {
     loadFromStorage();
     loadHoseFromStorage();
     render();
     document.getElementById('sub').textContent =
         `${state.slots.length} Fächer geladen · Klicke auf ein Lager zum Bearbeiten`;
+}
 
-    // Topbar
+/**
+ * Registriert Event-Handler für die Topbar (Logout, Layout, Hinzufügen).
+ */
+function initTopbar() {
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.getElementById('layout-btn').addEventListener('click', cycleLayout);
     document.getElementById('add-btn').addEventListener('click', () => {
@@ -35,25 +42,37 @@ function init() {
             openAdd();
         }
     });
+}
 
-    // View tabs
+/**
+ * Registriert Event-Handler für die Ansichts-Tabs (Lager / Schlauch).
+ */
+function initViewTabs() {
     document.getElementById('tab-lager').addEventListener('click',    () => setActiveView('lager'));
     document.getElementById('tab-schlauch').addEventListener('click', () => setActiveView('schlauch'));
+}
 
-    // Grid – event delegation for warehouse and hose cards
+/**
+ * Registriert Event-Delegation auf dem Grid für Lager- und Schlauch-Karten.
+ */
+function initGrid() {
     document.getElementById('grid').addEventListener('click', (event) => {
-        const hoseCard    = event.target.closest('.schlauch-card');
-        const hoseAddBtn  = event.target.closest('[data-action="add-schlauch"]');
-        const slotCard    = event.target.closest('.slot');
-        const slotAddBtn  = event.target.closest('[data-action="add-slot"]');
+        const hoseCard   = event.target.closest('.schlauch-card');
+        const hoseAddBtn = event.target.closest('[data-action="add-schlauch"]');
+        const slotCard   = event.target.closest('.slot');
+        const slotAddBtn = event.target.closest('[data-action="add-slot"]');
 
         if (hoseCard)   { openHoseEdit(parseInt(hoseCard.dataset.schlauchId, 10)); return; }
         if (hoseAddBtn) { openHoseAdd(); return; }
         if (slotCard)   { openEdit(parseInt(slotCard.dataset.id, 10)); return; }
         if (slotAddBtn) { openAdd(); }
     });
+}
 
-    // Warehouse main overlay
+/**
+ * Registriert Event-Handler für das Lager-Modal (Overlay, Löschen, Leeren, Abbrechen, Speichern).
+ */
+function initWarehouseModal() {
     document.getElementById('overlay').addEventListener('click', (event) => {
         if (event.target.id === 'overlay') closeModal();
     });
@@ -61,25 +80,41 @@ function init() {
     document.getElementById('clear-btn').addEventListener('click', clearSlot);
     document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
     document.getElementById('modal-save-btn').addEventListener('click', saveSlot);
+}
 
-    // Partition
+/**
+ * Registriert den Event-Handler für den Partition-Hinzufügen-Button.
+ */
+function initPartition() {
     document.getElementById('add-partition-btn').addEventListener('click', addPartition);
+}
 
-    // Warehouse status dropdown
+/**
+ * Registriert Event-Handler für das Lager-Status-Dropdown.
+ */
+function initWarehouseStatusDropdown() {
     document.getElementById('status-trigger').addEventListener('click', toggleDropdown);
     document.querySelectorAll('#status-dropdown .cs-item').forEach(listItem => {
         listItem.addEventListener('click', () => selectStatus(listItem));
     });
+}
 
-    // Warehouse party dropdown
+/**
+ * Registriert Event-Handler für das Lager-Partie-Dropdown (Trigger, Hinzufügen, Bestätigen, Enter-Key).
+ */
+function initWarehousePartyDropdown() {
     document.getElementById('partie-trigger').addEventListener('click', togglePartieDropdown);
     document.getElementById('partie-add-btn').addEventListener('click', openNewPartieInput);
     document.getElementById('pn-ok-btn').addEventListener('click', confirmNewPartie);
     document.getElementById('pn-new-input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') { event.preventDefault(); confirmNewPartie(); }
     });
+}
 
-    // Temperature overlay
+/**
+ * Registriert Event-Handler für das Temperatur-Overlay (Buttons und Listen-Delegation).
+ */
+function initTemperatureOverlay() {
     document.getElementById('temp-overlay').addEventListener('click', (event) => {
         if (event.target.id === 'temp-overlay') closeTempForm();
     });
@@ -87,35 +122,50 @@ function init() {
     document.getElementById('temp-cancel-btn').addEventListener('click', closeTempForm);
     document.getElementById('temp-save-btn').addEventListener('click', saveTempEntry);
 
-    // Temperature list – event delegation for dynamic entries
     document.getElementById('temp-list').addEventListener('click', (event) => {
         const entry = event.target.closest('.temp-entry');
         if (entry) toggleTempEntry(entry);
     });
+}
 
-    // Hose main overlay
+/**
+ * Registriert Event-Handler für das Schlauch-Modal (Overlay, Löschen, Abbrechen, Speichern).
+ */
+function initHoseModal() {
     document.getElementById('schlauch-overlay').addEventListener('click', (event) => {
         if (event.target.id === 'schlauch-overlay') closeHoseModal();
     });
     document.getElementById('sc-del-btn').addEventListener('click', deleteHose);
     document.getElementById('sc-modal-cancel-btn').addEventListener('click', closeHoseModal);
     document.getElementById('sc-modal-save-btn').addEventListener('click', saveHose);
+}
 
-    // Hose party dropdown
+/**
+ * Registriert Event-Handler für das Schlauch-Partie-Dropdown (Trigger, Hinzufügen, Bestätigen, Enter-Key).
+ */
+function initHosePartyDropdown() {
     document.getElementById('sc-partie-trigger').addEventListener('click', toggleHosePartyDropdown);
     document.getElementById('sc-partie-add-btn').addEventListener('click', openHoseNewPartyInput);
     document.getElementById('sc-pn-ok-btn').addEventListener('click', confirmHoseNewParty);
     document.getElementById('sc-pn-new-input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') { event.preventDefault(); confirmHoseNewParty(); }
     });
+}
 
-    // Hose location dropdown
+/**
+ * Registriert Event-Handler für das Schlauch-Standort-Dropdown.
+ */
+function initHoseLocationDropdown() {
     document.getElementById('sc-standort-trigger').addEventListener('click', toggleHoseLocationDropdown);
     document.querySelectorAll('.sc-standort-item').forEach(item => {
         item.addEventListener('click', () => setHoseLocationValue(item.dataset.value));
     });
+}
 
-    // Hose note overlay
+/**
+ * Registriert Event-Handler für das Schlauch-Notiz-Overlay (Buttons und Listen-Delegation).
+ */
+function initHoseNoteOverlay() {
     document.getElementById('schlauch-notiz-overlay').addEventListener('click', (event) => {
         if (event.target.id === 'schlauch-notiz-overlay') closeNoteForm();
     });
@@ -123,13 +173,16 @@ function init() {
     document.getElementById('sn-cancel-btn').addEventListener('click', closeNoteForm);
     document.getElementById('sn-save-btn').addEventListener('click', saveNoteEntry);
 
-    // Note list – event delegation for dynamic entries
     document.getElementById('sc-notiz-list').addEventListener('click', (event) => {
         const entry = event.target.closest('.temp-entry');
         if (entry) toggleNoteEntry(entry);
     });
+}
 
-    // Keyboard shortcuts
+/**
+ * Registriert globale Tastatur-Shortcuts (Escape und Enter) für Lager- und Schlauch-Modal.
+ */
+function initKeyboardShortcuts() {
     document.addEventListener('keydown', (event) => {
         const warehouseOpen = document.getElementById('overlay').classList.contains('open');
         const hoseOpen      = document.getElementById('schlauch-overlay').classList.contains('open');
@@ -155,14 +208,39 @@ function init() {
             }
         }
     });
+}
 
-    // Close all dropdowns on outside click
+/**
+ * Schließt alle Dropdowns bei einem Klick außerhalb.
+ */
+function initDropdownOutsideClick() {
     document.addEventListener('click', () => {
         document.getElementById('status-dropdown')?.classList.remove('open');
         document.getElementById('partie-dropdown')?.classList.remove('open');
         document.getElementById('sc-partie-dropdown')?.classList.remove('open');
         document.getElementById('sc-standort-dropdown')?.classList.remove('open');
     });
+}
+
+/**
+ * Einstiegspunkt: Initialisiert App-Daten und alle Event-Handler.
+ */
+function init() {
+    initApp();
+    initTopbar();
+    initViewTabs();
+    initGrid();
+    initWarehouseModal();
+    initPartition();
+    initWarehouseStatusDropdown();
+    initWarehousePartyDropdown();
+    initTemperatureOverlay();
+    initHoseModal();
+    initHosePartyDropdown();
+    initHoseLocationDropdown();
+    initHoseNoteOverlay();
+    initKeyboardShortcuts();
+    initDropdownOutsideClick();
 }
 
 init();

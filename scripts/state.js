@@ -43,22 +43,36 @@ export const state = {
    STORAGE
 ═══════════════════════════════════════════════ */
 
-export function loadFromStorage() {
+/**
+ * Migrates a single slot from an older data format to the current format.
+ * Adds a fallback slotNumber and wraps legacy fields into a partitions array if needed.
+ * @param {Object} slot - The slot object to migrate.
+ * @param {number} index - The index of the slot in the array (used as slotNumber fallback).
+ */
+function migrateLegacySlot(slot, index) {
+    if (slot.slotNumber == null) {
+        slot.slotNumber = index + 5;
+    }
+    if (!slot.partitions) {
+        slot.partitions = [{
+            label:        'A',
+            fruchtart:    slot.fruchtart || '',
+            parties:      slot.parties || [],
+            temperatures: slot.temperatures || [],
+        }];
+    }
+}
+
+/**
+ * Loads slot data from localStorage into state.slots and state.nextId.
+ * Falls back to defaultSlots() if no data exists or parsing fails.
+ */
+function loadSlotsFromStorage() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
             state.slots = JSON.parse(raw);
-            state.slots.forEach((slot, index) => {
-                if (slot.slotNumber == null) slot.slotNumber = index + 5;
-                if (!slot.partitions) {
-                    slot.partitions = [{
-                        label:        'A',
-                        fruchtart:    slot.fruchtart || '',
-                        parties:      slot.parties || [],
-                        temperatures: slot.temperatures || [],
-                    }];
-                }
-            });
+            state.slots.forEach((slot, index) => migrateLegacySlot(slot, index));
             state.nextId = state.slots.reduce((max, slot) => Math.max(max, slot.id), 0) + 1;
         } else {
             state.slots  = defaultSlots();
@@ -69,11 +83,24 @@ export function loadFromStorage() {
         state.slots  = defaultSlots();
         state.nextId = state.slots.length + 1;
     }
+}
 
+/**
+ * Loads the column index setting from localStorage into state.colIdx.
+ */
+function loadColIdxFromStorage() {
     try {
         const colIndex = localStorage.getItem(COL_KEY);
         if (colIndex !== null) state.colIdx = parseInt(colIndex, 10);
     } catch (_) { }
+}
+
+/**
+ * Loads all persistent state from localStorage (slots and column index).
+ */
+export function loadFromStorage() {
+    loadSlotsFromStorage();
+    loadColIdxFromStorage();
 }
 
 /**

@@ -13,8 +13,8 @@ import { renderTempList } from './temperature.js';
 export function saveCurrentPartitionState() {
     const partition = state.editingPartitions[state.activePartitionIdx];
     if (!partition) return;
-    partition.fruchtart    = document.getElementById('f-frucht').value.trim();
-    partition.parties      = state.editingParties;
+    partition.fruchtart = document.getElementById('f-frucht').value.trim();
+    partition.parties = state.editingParties;
     partition.temperatures = state.tempEntries;
 }
 
@@ -26,8 +26,16 @@ export function loadPartitionContent(idx) {
     const partition = state.editingPartitions[idx];
     if (!partition) return;
     document.getElementById('f-frucht').value = partition.fruchtart || '';
-    state.editingParties = partition.parties      ? partition.parties.map(party => ({ ...party }))        : [];
-    state.tempEntries    = partition.temperatures ? [...partition.temperatures]                            : [];
+    if (partition.parties) {
+        state.editingParties = partition.parties.map(party => ({ ...party }));
+    } else {
+        state.editingParties = [];
+    }
+    if (partition.temperatures) {
+        state.tempEntries = [...partition.temperatures];
+    } else {
+        state.tempEntries = [];
+    }
     renderPartieDropdownLabel();
     renderTempList();
     document.getElementById('pn-new-row').style.display = 'none';
@@ -100,7 +108,7 @@ function selectPartitionFromPicker(idx) {
     loadPartitionContent(idx);
     renderPartitionTabs();
     document.getElementById('partition-picker').style.display = 'none';
-    document.getElementById('modal-content').style.display    = 'block';
+    document.getElementById('modal-content').style.display = 'block';
 }
 
 /**

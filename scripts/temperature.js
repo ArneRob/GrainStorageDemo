@@ -88,8 +88,7 @@ export function saveTempEntry() {
         massnahmen,
         savedBy: localStorage.getItem('lager_user') || 'Unbekannt',
         savedAtMs: now.getTime(),
-        savedAtDisplay: now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-            + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+        savedAtDisplay: now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })
     });
     closeTempForm();
     renderTempList();

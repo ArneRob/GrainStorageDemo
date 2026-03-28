@@ -203,6 +203,53 @@ export function returnPartitionPickerTemplate(partitions) {
   return `<div class="picker-title">Welche Teilung möchtest du bearbeiten?</div><div class="picker-cards">${items}</div>`;
 }
 
+/* ═══════════════════════════════════════════════
+   ARCHIVE TEMPLATES
+═══════════════════════════════════════════════ */
+
+/**
+ * Returns a single header cell for the archive table.
+ * @param {string} label - Column header text.
+ * @returns {string} HTML string.
+ */
+export function returnArchiveHeaderCellTemplate(label) {
+    return `<th style="padding:6px 10px;background:#222;text-align:left">${escHtml(label)}</th>`;
+}
+
+/**
+ * Returns a single data cell for the archive table.
+ * @param {string} value     - Cell content.
+ * @param {string} cellStyle - Full inline style string for the cell.
+ * @returns {string} HTML string.
+ */
+export function returnArchiveDataCellTemplate(value, cellStyle) {
+    return `<td style="${cellStyle}">${escHtml(value)}</td>`;
+}
+
+/**
+ * Returns a single row for the archive table.
+ * @param {string} cellsHtml - Pre-built HTML string of all cells.
+ * @param {string} bgColor   - Background color for the row.
+ * @returns {string} HTML string.
+ */
+export function returnArchiveDataRowTemplate(cellsHtml, bgColor) {
+    return `<tr style="background:${bgColor}">${cellsHtml}</tr>`;
+}
+
+/**
+ * Returns the full archive table HTML.
+ * @param {string} headerHtml - Pre-built HTML string of header cells.
+ * @param {string} bodyHtml   - Pre-built HTML string of body rows.
+ * @returns {string} HTML string.
+ */
+export function returnArchiveTableTemplate(headerHtml, bodyHtml) {
+    return `
+        <table border="1" style="border-collapse:collapse;font-family:monospace;font-size:13px;width:100%">
+            <thead><tr>${headerHtml}</tr></thead>
+            <tbody>${bodyHtml}</tbody>
+        </table>`;
+}
+
 /**
  * Returns the partition tabs template.
  * @param {Array}  partitions - Array of partition objects.

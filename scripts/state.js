@@ -4,16 +4,16 @@ import { showToast, nowTimestamp } from './utils.js';
    CONSTANTS
 ═══════════════════════════════════════════════ */
 
-export const STORAGE_KEY  = 'lager_slots';
-export const COL_KEY      = 'lager_col_idx';
-export const ARCHIVE_KEY  = 'lager_archiv';
-export const HOSE_KEY     = 'lager_schlauch_slots';
-export const COL_OPTIONS  = [2, 3];
+export const STORAGE_KEY = 'lager_slots';
+export const COL_KEY = 'lager_col_idx';
+export const ARCHIVE_KEY = 'lager_archiv';
+export const HOSE_KEY = 'lager_schlauch_slots';
+export const COL_OPTIONS = [2, 3];
 
 export const STATUS_LABELS = {
-    leer:       'Ungereinigt',
-    voll:       'Voll',
-    gereinigt:  'Gereinigt',
+    leer: 'Ungereinigt',
+    voll: 'Voll',
+    gereinigt: 'Gereinigt',
     reserviert: 'Reserviert',
 };
 
@@ -22,21 +22,21 @@ export const STATUS_LABELS = {
 ═══════════════════════════════════════════════ */
 
 export const state = {
-    slots:              [],
-    nextId:             1,
-    editingId:          null,
-    editingPartitions:  [],
+    slots: [],
+    nextId: 1,
+    editingId: null,
+    editingPartitions: [],
     activePartitionIdx: 0,
-    tempEntries:        [],
-    editingParties:     [],
-    colIdx:             0,
+    tempEntries: [],
+    editingParties: [],
+    colIdx: 0,
 
-    activeView:         'lager',
-    hoseSlots:          [],
-    hoseNextId:         1,
-    editingHoseId:      null,
+    activeView: 'lager',
+    hoseSlots: [],
+    hoseNextId: 1,
+    editingHoseId: null,
     hoseEditingParties: [],
-    weightNoteEntries:  [],
+    weightNoteEntries: [],
 };
 
 /* ═══════════════════════════════════════════════
@@ -55,9 +55,9 @@ function migrateLegacySlot(slot, index) {
     }
     if (!slot.partitions) {
         slot.partitions = [{
-            label:        'A',
-            fruchtart:    slot.fruchtart || '',
-            parties:      slot.parties || [],
+            label: 'A',
+            fruchtart: slot.fruchtart || '',
+            parties: slot.parties || [],
             temperatures: slot.temperatures || [],
         }];
     }
@@ -75,12 +75,12 @@ function loadSlotsFromStorage() {
             state.slots.forEach((slot, index) => migrateLegacySlot(slot, index));
             state.nextId = state.slots.reduce((max, slot) => Math.max(max, slot.id), 0) + 1;
         } else {
-            state.slots  = defaultSlots();
+            state.slots = defaultSlots();
             state.nextId = state.slots.length + 1;
         }
     } catch (error) {
         console.warn('Failed to read from localStorage:', error);
-        state.slots  = defaultSlots();
+        state.slots = defaultSlots();
         state.nextId = state.slots.length + 1;
     }
 }
@@ -149,7 +149,7 @@ function writeToArchive(compartmentKey, grainKey, partyValues, temperatures) {
     if (!archive[compartmentKey][dateKey]) archive[compartmentKey][dateKey] = {};
 
     archive[compartmentKey][dateKey][grainKey] = {
-        partien:      partyValues,
+        partien: partyValues,
         temperaturen: temperatures,
     };
 
@@ -171,7 +171,7 @@ export function archiveSlotData(slot) {
 export function archivePartitionData(slot, partition) {
     try {
         const compartmentKey = `Lager ${slot.slotNumber}`;
-        const grainKey       = partition.fruchtart || 'Unbekannt';
+        const grainKey = partition.fruchtart || 'Unbekannt';
         writeToArchive(compartmentKey, grainKey, partition.parties.map(party => party.value), partition.temperatures);
     } catch (error) {
         console.warn('Archiving failed:', error);
@@ -199,15 +199,15 @@ export function loadHoseFromStorage() {
     try {
         const raw = localStorage.getItem(HOSE_KEY);
         if (raw) {
-            state.hoseSlots  = JSON.parse(raw);
+            state.hoseSlots = JSON.parse(raw);
             state.hoseNextId = state.hoseSlots.reduce((max, hose) => Math.max(max, hose.id), 0) + 1;
         } else {
-            state.hoseSlots  = [];
+            state.hoseSlots = [];
             state.hoseNextId = 1;
         }
     } catch (error) {
         console.warn('Failed to read hose data from localStorage:', error);
-        state.hoseSlots  = [];
+        state.hoseSlots = [];
         state.hoseNextId = 1;
     }
 }
@@ -227,27 +227,78 @@ export function saveHoseToStorage() {
 function defaultSlots() {
     const t = nowTimestamp();
     return [
-        { id:  1, slotNumber:  1, partitions: [{ label: 'A', fruchtart: 'Hafer',         parties: [{ value: '66-1001', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id:  2, slotNumber:  2, partitions: [{ label: 'A', fruchtart: 'Dinkel im Sp.', parties: [{ value: '66-1002', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id:  3, slotNumber:  3, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id:  4, slotNumber:  4, partitions: [{ label: 'A', fruchtart: 'Weizen br.',     parties: [{ value: '66-1004', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id:  5, slotNumber:  5, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1005', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id:  6, slotNumber:  6, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'gereinigt',  updated: t },
-        { id:  7, slotNumber:  7, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1007', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id:  8, slotNumber:  9, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'reserviert', updated: t },
-        { id:  9, slotNumber: 10, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id: 10, slotNumber: 11, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'gereinigt',  updated: t },
-        { id: 11, slotNumber: 12, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'reserviert', updated: t },
-        { id: 12, slotNumber: 13, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id: 13, slotNumber: 14, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1014', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id: 14, slotNumber: 15, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'gereinigt',  updated: t },
-        { id: 15, slotNumber: 16, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id: 16, slotNumber: 19, partitions: [{ label: 'A', fruchtart: 'Soja',           parties: [{ value: '66-1019', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id: 17, slotNumber: 20, partitions: [{ label: 'A', fruchtart: 'Raps',           parties: [{ value: '66-1020A', addedAt: t, addedAtMs: 0 }], temperatures: [] }, { label: 'B', fruchtart: 'SBK', parties: [{ value: '66-1020B', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                status: 'voll',       updated: t },
-        { id: 18, slotNumber: 21, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id: 19, slotNumber: 22, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1022', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id: 20, slotNumber: 23, partitions: [{ label: 'A', fruchtart: '',               parties: [],                                                                   temperatures: [] }],                                                                                                                status: 'leer',       updated: t },
-        { id: 21, slotNumber: 24, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1024', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
-        { id: 22, slotNumber: 25, partitions: [{ label: 'A', fruchtart: 'SBK',            parties: [{ value: '66-1025', addedAt: t, addedAtMs: 0 }], temperatures: [] }],                                                                                                                                   status: 'voll',       updated: t },
+        { id: 1, slotNumber: 1, partitions: [{ label: 'A', fruchtart: 'Hafer', parties: [{ value: '66-1001', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 2, slotNumber: 2, partitions: [{ label: 'A', fruchtart: 'Dinkel im Sp.', parties: [{ value: '66-1002', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 3, slotNumber: 3, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 4, slotNumber: 4, partitions: [{ label: 'A', fruchtart: 'Weizen br.', parties: [{ value: '66-1004', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 5, slotNumber: 5, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1005', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 6, slotNumber: 6, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'gereinigt', updated: t },
+        { id: 7, slotNumber: 7, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1007', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 8, slotNumber: 9, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'reserviert', updated: t },
+        { id: 9, slotNumber: 10, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 10, slotNumber: 11, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'gereinigt', updated: t },
+        { id: 11, slotNumber: 12, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'reserviert', updated: t },
+        { id: 12, slotNumber: 13, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 13, slotNumber: 14, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1014', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 14, slotNumber: 15, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'gereinigt', updated: t },
+        { id: 15, slotNumber: 16, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 16, slotNumber: 19, partitions: [{ label: 'A', fruchtart: 'Soja', parties: [{ value: '66-1019', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 17, slotNumber: 20, partitions: [{ label: 'A', fruchtart: 'Raps', parties: [{ value: '66-1020A', addedAt: t, addedAtMs: 0 }], temperatures: [] }, { label: 'B', fruchtart: 'SBK', parties: [{ value: '66-1020B', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 18, slotNumber: 21, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 19, slotNumber: 22, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1022', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 20, slotNumber: 23, partitions: [{ label: 'A', fruchtart: '', parties: [], temperatures: [] }], status: 'leer', updated: t },
+        { id: 21, slotNumber: 24, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1024', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
+        { id: 22, slotNumber: 25, partitions: [{ label: 'A', fruchtart: 'SBK', parties: [{ value: '66-1025', addedAt: t, addedAtMs: 0 }], temperatures: [] }], status: 'voll', updated: t },
     ];
+}
+
+
+
+/**
+ * Writes a single partition entry into the currentSlots archive object.
+ * Mutates currentSlots directly via object reference.
+ * @param {string} compartmentKey - e.g. "Lager 1"
+ * @param {string} grainKey - Grain type of the partition
+ * @param {string[]} partyValues - Array of party numbers
+ * @param {object[]} temperatures - Array of temperature entries
+ * @param {object} currentSlots - The accumulated archive object
+ */
+function buildArchiveEntry(compartmentKey, grainKey, partyValues, temperatures, currentSlots) {
+    const dateKey = buildArchiveDateKey();
+
+    if (!currentSlots[compartmentKey]) currentSlots[compartmentKey] = {};
+    if (!currentSlots[compartmentKey][dateKey]) currentSlots[compartmentKey][dateKey] = {};
+
+    currentSlots[compartmentKey][dateKey][grainKey] = {
+        partien: partyValues,
+        temperaturen: temperatures,
+    };
+}
+
+/**
+ * Adds all relevant partitions of a slot into the currentSlots archive object.
+ * Partitions without a grain type or without parties are skipped.
+ * @param {object} slot - A slot from state.slots
+ * @param {object} currentSlots - The accumulated archive object
+ */
+function addSlotToCurrentSlots(slot, currentSlots) {
+    const compartmentKey = `Lager ${slot.slotNumber}`;
+
+    slot.partitions.forEach(partition => {
+        const grainKey = partition.fruchtart || 'Unbekannt';
+        if (grainKey == "Unbekannt" || partition.parties.length == 0) { return; }
+        buildArchiveEntry(compartmentKey, grainKey, partition.parties.map(party => party.value), partition.temperatures, currentSlots);
+    });
+}
+
+/**
+ * Converts all slots in state to a structured archive object.
+ * @returns {object} Archive object grouped by compartment, date, and grain type
+ */
+export function convertSlotDataToArchiveDataFormat() {
+    const currentSlots = {};
+    state.slots.forEach(slot => {
+        addSlotToCurrentSlots(slot, currentSlots);
+    });
+    return currentSlots;
 }

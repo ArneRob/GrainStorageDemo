@@ -240,7 +240,7 @@
 }
 
 .temp-list {
-    max-height: 100px;
+    max-height: 130px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -375,6 +375,6 @@
 .archiveTable {
     border-collapse: collapse;
     font-family: monospace;
-    font-size: 13px;
+    font-size: 16px;
     width: 100%;
 }

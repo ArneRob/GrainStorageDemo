@@ -1,7 +1,7 @@
 
 
 const USERS = [
-    { username: 'arne', password: 'LagerSoftware' },
+    { username: 'Max', password: '123' },
 ];
 
 const AUTH_KEY = 'lager_auth';
@@ -13,7 +13,7 @@ const AUTH_KEY = 'lager_auth';
 })();
 
 function doLogin() {
-    const user = document.getElementById('inp-user').value.trim().toLowerCase();
+    const user = document.getElementById('inp-user').value.trim();
     const pass = document.getElementById('inp-pass').value;
     const match = USERS.find(u => u.username === user && u.password === pass);
     if (match) {

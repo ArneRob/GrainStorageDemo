@@ -1,0 +1,155 @@
+# Builds the image of the demo of the warehouse app (lagerdemo), checks it for secrets and known
+# vulnerabilities and only then pushes it to GitHub's registry. The server
+# takes it from there ("gss-deploy seite" in Server-Setup); a push here
+# changes nothing live by itself.
+#
+# Each job gets only the rights it needs. The scanner runs without any
+# token, and only the last job may write to the registry: in March 2026
+# attackers turned Trivy's own GitHub actions into code that stole the
+# secrets of every run (GHSA-69fq-xp46-6x23). The image travels between the
+# jobs as a file, and the last job pushes exactly the file that was scanned.
+#
+# The actions are pinned to commit hashes, not version tags: a tag can be
+# moved to other code later, a hash cannot. Trivy itself is not used as an
+# action but as a release file, checked against its checksum.
+name: Image
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+# With "shell: bash" GitHub runs every step with -eo pipefail; without it,
+# a failure on the left of a pipe would go unnoticed.
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/arnerob/grainstoragedemo
+  # Only a release that has been out for two weeks and that GitHub marks as
+  # immutable. To update: both values from the line for Linux-64bit.tar.gz
+  # in trivy_<version>_checksums.txt of the release.
+  TRIVY_VERSION: "0.76.1"
+  TRIVY_SHA256: c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+  # No usage data to Aqua, no update notices.
+  TRIVY_DISABLE_TELEMETRY: "true"
+  TRIVY_SKIP_VERSION_CHECK: "true"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      image-sha256: ${{ steps.file.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+
+      # Into a file instead of the registry. Without provenance: the docker
+      # file format cannot carry it, and nothing checks it.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=docker,dest=${{ runner.temp }}/image.tar
+          provenance: false
+          sbom: false
+
+      - id: file
+        name: Checksum of the image file
+        run: echo "sha256=$(sha256sum "${RUNNER_TEMP}/image.tar" | cut -d' ' -f1)" >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image
+          path: ${{ runner.temp }}/image.tar
+          retention-days: 1
+          if-no-files-found: error
+
+  scan:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: image
+          path: ${{ runner.temp }}
+
+      - name: Install Trivy
+        run: |
+          archive="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          mkdir -p "${RUNNER_TEMP}/trivy"
+          curl -fsSL --retry 3 -o "${RUNNER_TEMP}/trivy/${archive}" \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${archive}"
+          echo "${TRIVY_SHA256}  ${RUNNER_TEMP}/trivy/${archive}" | sha256sum --check --strict
+          tar -xzf "${RUNNER_TEMP}/trivy/${archive}" -C "${RUNNER_TEMP}/trivy" trivy
+          echo "${RUNNER_TEMP}/trivy" >> "${GITHUB_PATH}"
+
+      - name: Report
+        run: |
+          {
+            echo "### Bekannte Lücken und Geheimnisse im Image"
+            echo '```'
+            trivy image --input "${RUNNER_TEMP}/image.tar" --scanners vuln,secret --no-progress
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      # Stops the run on a secret in the files, or on a critical or high
+      # vulnerability that has a fixed version.
+      - name: Gate
+        run: |
+          trivy image --input "${RUNNER_TEMP}/image.tar" --scanners vuln,secret \
+            --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --no-progress
+
+  push:
+    needs: [build, scan]
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: image
+          path: ${{ runner.temp }}
+
+      - name: Same file as scanned
+        env:
+          EXPECTED_SHA256: ${{ needs.build.outputs.image-sha256 }}
+        run: echo "${EXPECTED_SHA256}  ${RUNNER_TEMP}/image.tar" | sha256sum --check --strict
+
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push
+        run: |
+          docker load --input "${RUNNER_TEMP}/image.tar"
+          docker push --all-tags "${IMAGE}" | tee "${RUNNER_TEMP}/push.log"
+          digest="$(grep -o 'digest: sha256:[0-9a-f]*' "${RUNNER_TEMP}/push.log" | sort -u)"
+          if [[ "$(wc -l <<<"${digest}")" -ne 1 || -z "${digest}" ]]; then
+            echo "Keine eindeutige Image-Prüfsumme in der Ausgabe von docker push" >&2
+            exit 1
+          fi
+          echo "Image-Prüfsumme: ${digest#digest: }" >> "${GITHUB_STEP_SUMMARY}"

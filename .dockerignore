@@ -1,0 +1,6 @@
+# Only what the web server delivers goes into the image (see Dockerfile).
+# Hidden files and folders: .git, .github, .gitignore, .DS_Store, .vscode.
+**/.*
+Dockerfile
+README.md
+LICENSE
